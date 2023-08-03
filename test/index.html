@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full dark">
+<head>
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.0/dist/trix.css">
+  <script type="module">
+  import 'https://unpkg.com/trix@2.0.4/dist/trix.umd.min.js'
+  import { Application } from 'https://unpkg.com/@hotwired/stimulus@3.2.1/dist/stimulus.js'
+  import { TrixEmbedController } from '../dist/trix-embed.js'
+
+  const application = Application.start()
+  application.register('trix-embed', TrixEmbedController)
+  </script>
+
+<style>
+ /*
+.attachment { border: solid 1px red; }
+.attachment__caption { background: red; height: 20px; width: 100%; color: white; }
+*/
+</style>
+
+</head>
+<body>
+  <h1>Trix Embed</h1>
+
+  <trix-editor
+    data-controller="trix-embed"
+    data-action="trix-paste->trix-embed#paste"
+    data-trix-embed-hosts-value='["embed.voomly.com", "share.voomly.com", "www.loom.com"]'
+    data-trix-embed-template-value='embed-iframe'>
+  </trix-editor>
+
+  <template id="embed-iframe">
+    <div style="text-align:center;">
+      <iframe
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture"
+        allowfullscreen
+        frameborder="0"
+        loading="lazy"
+        referrerpolicy="no-referrer"
+        scrolling="no"
+        style="width:800px; height:400px;">
+      </iframe>
+    </div>
+  </template>
+
+</body>
+</html>
