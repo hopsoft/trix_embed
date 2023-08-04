@@ -5,10 +5,10 @@
   <script type="module">
   import 'https://unpkg.com/trix@2.0.4/dist/trix.umd.min.js'
   import { Application } from 'https://unpkg.com/@hotwired/stimulus@3.2.1/dist/stimulus.js'
-  import { TrixEmbedController } from '../../dist/trix-embed.js'
+  import TrixEmbed from '../../dist/trix-embed.js'
 
   const application = Application.start()
-  application.register('trix-embed', TrixEmbedController)
+  TrixEmbed.initialize({ application })
   </script>
 </head>
 <body>

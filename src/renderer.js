@@ -6,9 +6,9 @@ export default class Renderer {
     this.hosts = controller.hostsValue
 
     // default urls template
-    if (controller.defaultTemplateValue) {
-      const template = document.getElementById(controller.defaultTemplateValue)
-      if (template) this.defaultTemplate = template
+    if (controller.templateValue) {
+      const template = document.getElementById(controller.templateValue)
+      if (template) this.template = template
     }
 
     // invalid urls template
@@ -25,7 +25,7 @@ export default class Renderer {
   }
 
   render(urls) {
-    const element = this.defaultTemplate.content.firstElementChild.cloneNode(true)
+    const element = this.template.content.firstElementChild.cloneNode(true)
     const urlsTemplate = element.querySelector('[data-list="urls"]')
     const urlTemplate = urlsTemplate.querySelector('[data-item="url"]')
 
@@ -83,12 +83,12 @@ export default class Renderer {
     return element.outerHTML
   }
 
-  set defaultTemplate(template) {
-    this._defaultTemplate = template
+  set template(template) {
+    this._template = template
   }
 
-  get defaultTemplate() {
-    if (this._defaultTemplate) return this._defaultTemplate
+  get template() {
+    if (this._template) return this._template
 
     const template = document.createElement('template')
     template.innerHTML = `

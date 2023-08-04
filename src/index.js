@@ -1,3 +1,12 @@
-import TrixEmbedController from './controller'
+import Controller from './controller'
 
-export { TrixEmbedController }
+const defaultOptions = {
+  application: null
+}
+
+function initialize(options = defaultOptions) {
+  const { application } = options
+  application.register('trix-embed', Controller)
+}
+
+export default { initialize }

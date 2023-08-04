@@ -9,8 +9,8 @@ import { Controller } from 'https://unpkg.com/@hotwired/stimulus@3.2.1/dist/stim
 
 export default class extends Controller {
   static values = {
-    hosts: Array, // list of hosts that embeds are allowed from
-    defaultTemplate: String, // dom id of template to use for embeds regardless of validity
+    hosts: Array, // list of hosts/domains that embeds are allowed from
+    template: String, // dom id of the default template to use for embeds regardless of validity
     validTemplate: String, // dom id of template to use for valid embeds
     invalidTemplate: String // dom id of template to use for invalid embeds
   }

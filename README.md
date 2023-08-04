@@ -1,82 +1,94 @@
 # Trix Embed
 
-**Welcome to Trix Embed
+**Welcome to Trix Embed 👋**
 
-Trix Embed is a Stimulus controller that provides advanced functionality for managing embedded content within the Trix editor.
-It allows you to control the behavior of pasted content by setting permission lists for acceptable hosts of embedded media.
-You can also define the template used for iframe embedding of pasted content.
+Trix Embed is a Stimulus controller that provides support for managing embedded content (copy/paste) within the Trix editor.
 
-## Installation
+- Iframes
+- Audio
+- Images
+- Videos
+- Etc.
 
-To get started with Trix Embed Controller, follow these steps:
+## Features
 
-1. Install the required dependencies using npm:
+- Allow list for supported hosts (domains)
+- Customizable templates
+
+## Dependencies
+
+You application must have the following dependencies installed and configured.
+
+- [@hotwired/stimulus](https://github.com/hotwired/stimulus)
+- [trix](https://github.com/basecamp/trix)
+
+## Installation & Configuration
+
+1. Install the libary
 
    ```bash
-   npm install @hotwired/stimulus trix trix-embed-controller
+   yarn add trix-embed
    ```
 
-2. Import the `TrixEmbedController` from the package in your JavaScript entry point:
+2. Configure your app
 
    ```javascript
-   import { TrixEmbedController } from 'trix-embed-controller';
+   import Trix from 'trix'
+   import { Application } from '@hotwired/stimulus'
+   import TrixEmbed from 'trix-embed'
+
+   const application = Application.start()
+   TrixEmbed.initialize({ application })
    ```
 
 ## Usage
 
-Integrating Trix Embed Controller into your project is straightforward. You'll need to associate the controller with your Trix editor instance and configure it using data attributes. Here's how you can set it up:
+Integrating Trix Embed with a `<trix-editor>` is straightforward.
 
-1. Import the required CSS for Trix:
-
-   ```html
-   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/trix@1.3.1/dist/trix.css">
-   ```
-
-2. Create a Trix editor element and link it with the `TrixEmbedController`:
-
-   ```html
-   <trix-editor input="editor" data-controller="trix trix-embed" data-trix-embed-hosts='["example.com", "media-site.net"]' data-trix-embed-template="iframe-template" data-trix-embed-invalid-message="<strong>The pasted content is not supported!</strong><br><br>Media is limited to:">
-   </trix-editor>
-   ```
-
-3. Add the necessary JavaScript imports and initialization:
-
-   ```javascript
-   import { Application } from 'stimulus';
-   import { definitionsFromContext } from 'stimulus/webpack-helpers';
-   import { TrixEmbedController } from 'trix-embed-controller';
-
-   // Initialize Stimulus
-   const application = Application.start();
-   const context = require.context('./controllers', true, /\.js$/);
-   application.load(definitionsFromContext(context));
-
-   // Register TrixEmbedController
-   application.register('trix-embed', TrixEmbedController);
-   ```
+```html
+<trix-editor
+  data-controller="trix-embed"
+  data-action="trix-paste->trix-embed#paste">
+</trix-editor>
+```
 
 ## Configuration Options
 
-You can configure the behavior of Trix Embed Controller using data attributes on the Trix editor element:
+You can configure the behavior with data attributes.
 
-- `data-trix-embed-hosts`: A JSON array of accepted domains for embedded media.
-- `data-trix-embed-template`: The ID of an HTML template element for iframe embedding (optional).
-- `data-trix-embed-invalid-message`: Custom HTML string to display on invalid paste events (optional).
+- `data-trix-embed-hosts` - list of hosts/domains that embeds are allowed from
+- `data-trix-embed-template` - [optional] DOM ID of the default template to use for embeds regardless of validity
+- `data-trix-embed-valid-template` - [optional] DOM ID of template to use for valid embeds
+- `data-trix-embed-invalid-message` - [optional] DOM ID of template to use for invalid embeds
 
-## Controller Source Code
+## Examples
 
-Here's the source code of the `TrixEmbedController`, which defines the behavior of the controller:
+```html
+<trix-editor
+  data-controller='trix-embed'
+  data-action='trix-paste->trix-embed#paste'
+  data-trix-embed-hosts-value='["example.com", "test.com"]'
+  data-trix-embed-valid-template-value='trix-embed-valid'>
+</trix-editor>
 
-```javascript
-// ... (see the provided source code above)
+<template id='trix-embed-valid'>
+  <div style='border:solid 1px gainsboro; border-radius:5px; display:inline-block; padding:10px;'>
+  <img style='border:solid 1px gainsboro;'></img>
+  <iframe
+    allow='accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture'
+    allowfullscreen
+    frameborder='0'
+    loading='lazy'
+    referrerpolicy='no-referrer'
+    scrolling='no'
+    width='854'
+    height='480'
+    style='border:solid 1px gainsboro;'>
+  </iframe>
+  </div>
+</template>
 ```
-
-Please note that the provided source code is a simplified version for explanatory purposes. Make sure to include the complete and accurate source code of `TrixEmbedController` in your project.
 
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-
----
-
-Experience enhanced control over embedded content in your TrixEditor with Trix Embed Controller. If you encounter any issues or have suggestions for improvements, please [submit an issue](https://github.com/your-username/your-project/issues) or contribute by sending a pull request. Your contributions are highly valued and appreciated!
