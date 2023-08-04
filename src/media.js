@@ -1,4 +1,10 @@
-const mediaTypes = {
+const audioMediaTypes = {
+  mp3: 'audio/mpeg', // MP3 audio format
+  ogg: 'audio/ogg', // OGG audio format
+  wav: 'audio/wav' // WAV audio format
+}
+
+const imageMediaTypes = {
   avif: 'image/avif', // AVIF image format
   bmp: 'image/bmp', // BMP image format
   gif: 'image/gif', // GIF image format
@@ -9,18 +15,21 @@ const mediaTypes = {
   jpeg: 'image/jpeg', // JPEG image format
   jpg: 'image/jpeg', // JPEG image format (alternative extension)
   jxr: 'image/vnd.ms-photo', // JPEG XR image format
-  mp3: 'audio/mpeg', // MP3 audio format
-  mp4: 'video/mp4', // MP4 video format
-  ogg: 'audio/ogg', // OGG audio format
-  ogv: 'video/ogg', // OGG video format
   png: 'image/png', // PNG image format
   svg: 'image/svg+xml', // SVG image format
   tif: 'image/tiff', // TIFF image format
   tiff: 'image/tiff', // TIFF image format (alternative extension)
-  wav: 'audio/wav', // WAV audio format
-  webm: 'video/webm', // WebM video format
   webp: 'image/webp' // WebP image format
 }
+
+const videoMediaTypes = {
+  mp4: 'video/mp4', // MP4 video format
+  ogv: 'video/ogg', // OGG video format
+  webm: 'video/webm' // WebM video format
+}
+
+// TODO: Expand to all media types once proper templates are implemented
+const mediaTypes = imageMediaTypes
 
 const tagsWithHrefAttribute = [
   'animate', // SVG: Animation

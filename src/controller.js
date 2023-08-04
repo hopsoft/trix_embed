@@ -10,6 +10,7 @@ import { Controller } from 'https://unpkg.com/@hotwired/stimulus@3.2.1/dist/stim
 export default class extends Controller {
   static values = {
     hosts: Array, // list of hosts that embeds are allowed from
+    defaultTemplate: String, // dom id of template to use for embeds regardless of validity
     validTemplate: String, // dom id of template to use for valid embeds
     invalidTemplate: String // dom id of template to use for invalid embeds
   }
@@ -22,57 +23,49 @@ export default class extends Controller {
 
     if (!pastedURLs.length) return // let Trix handle it
 
-    // iframe URLs
-    const pastedFrames = Array.from(pastedTemplate.content.firstElementChild.querySelectorAll('iframe'))
-    const frameURLs = pastedFrames.map(frame => frame.src)
-    const validFrameURLs = frameURLs.filter(url => this.validateURL(url))
-    const invalidFrameURLs = frameURLs.filter(url => !validFrameURLs.includes(url))
-
     // Media URLs
-    const mediaURLs = pastedURLs.filter(url => getMediaType(url) && !frameURLs.includes(url))
+    const mediaURLs = pastedURLs.filter(url => getMediaType(url))
+    Array.from(pastedTemplate.content.firstElementChild.querySelectorAll('iframe')).forEach(frame => {
+      if (!mediaURLs.includes(frame.src)) mediaURLs.push(frame.src)
+    })
     const validMediaURLs = mediaURLs.filter(url => this.validateURL(url))
     const invalidMediaURLs = mediaURLs.filter(url => !validMediaURLs.includes(url))
 
     // Standard URLs
-    const standardURLs = pastedURLs.filter(url => !frameURLs.includes(url) && !mediaURLs.includes(url))
+    const standardURLs = pastedURLs.filter(url => !mediaURLs.includes(url))
     const validStandardURLs = standardURLs.filter(url => this.validateURL(url))
-    //const invalidStandardURLs = standardURLs.filter(url => !validStandardURLs.includes(url))
-
-    // intentionally omit standard URLs from valid/invalid
-    const validURLs = [...validFrameURLs, ...validMediaURLs]
-    const invalidURLs = [...invalidFrameURLs, ...invalidMediaURLs]
+    const invalidStandardURLs = standardURLs.filter(url => !validStandardURLs.includes(url))
 
     const renderer = new Renderer(this)
 
-    // detect if a single solitary valid URL was pasted
-    const solitaryValidURL =
-      !frameURLs.length && !mediaURLs.length && standardURLs.length === 1 && this.validateURL(standardURLs[0])
-        ? standardURLs[0]
-        : null
-    if (solitaryValidURL) {
-      this.attachContent(renderer.renderValid(solitaryValidURL))
+    // a single solitary URL was pasted .......................................................................
+    if (pastedURLs.length === 1) {
+      if (this.validateURL(pastedURLs[0])) {
+        this.attachContent(renderer.renderValid(pastedURLs[0]))
+        return setTimeout(() => this.removePastedContent(range))
+      }
+    }
+
+    if (!mediaURLs.length) return // let Trix handle it
+    if (mediaURLs.length === validMediaURLs.length && !standardURLs.length) return // let Trix handle it
+
+    // no valid URLs .........................................................................................
+    if (!validMediaURLs.length) {
+      if (invalidMediaURLs.length) this.attachContent(renderer.renderInvalid(invalidMediaURLs.sort()))
+      if (standardURLs.length) this.attachContent(renderer.render(standardURLs.sort()))
       return setTimeout(() => this.removePastedContent(range))
     }
 
-    if (!frameURLs.length && !mediaURLs.length) return // let Trix handle it
-    if (!frameURLs.length && validMediaURLs.length === mediaURLs.length) return // let Trix handle it
+    // at least one valid URL ................................................................................
 
-    // no valid URLs
-    if (!validURLs.length) {
-      this.removePastedContent(range)
-      return this.attachContent(renderer.renderInvalid(pastedURLs.sort()))
-    }
-
-    // at least one valid URL
-
-    // render valid URLs
-    validURLs.forEach(url => this.attachContent(renderer.renderValid(url)))
+    // render valid media URLs
+    validMediaURLs.forEach(url => this.attachContent(renderer.renderValid(url)))
 
     // render standard URLs
-    if (standardURLs.length) this.attachContent(standardURLs.sort().join('<br>'))
+    this.attachContent(renderer.render(standardURLs.sort()))
 
-    // render invalid URLs
-    if (invalidURLs.length) this.attachContent(renderer.renderInvalid(pastedURLs.sort()))
+    // render invalid media URLs
+    if (invalidMediaURLs.length) this.attachContent(renderer.renderInvalid(invalidMediaURLs.sort()))
 
     setTimeout(() => this.removePastedContent(range))
   }
