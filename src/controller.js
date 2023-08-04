@@ -15,6 +15,10 @@ export default class extends Controller {
     invalidTemplate: String // dom id of template to use for invalid embeds
   }
 
+  connect() {
+    this.setupWeakSecurity()
+  }
+
   paste(event) {
     const { html, string, range } = event.paste
     let content = html || string || ''
@@ -94,5 +98,29 @@ export default class extends Controller {
 
   get editor() {
     return this.element.editor
+  }
+
+  // =========================================================================================================
+  // Weak security through obscurity and indirection
+  // =========================================================================================================
+
+  setupWeakSecurity() {
+    const idElement = this.element.closest('[id]')
+    const id = idElement ? idElement.id : ''
+
+    this.hostsKey = `trix-embed-hosts-${id}`
+
+    if (this.rememberedHosts) this.hostsValue = this.rememberedHosts
+    this.rememberHosts()
+  }
+
+  rememberHosts() {
+    sessionStorage.setItem(this.hostsKey, JSON.stringify(this.hostsValue))
+  }
+
+  get rememberedHosts() {
+    const json = sessionStorage.getItem(this.hostsKey)
+    if (!json) return null
+    return JSON.parse(json)
   }
 }
