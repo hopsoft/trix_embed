@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full dark">
 <head>
+  <title>Trix Embed</title>
   <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.0/dist/trix.css">
   <script type="module">
   import 'https://unpkg.com/trix@2.0.4/dist/trix.umd.min.js'
@@ -12,12 +13,14 @@
   </script>
 </head>
 <body>
-  <h1>Trix Embed</h1>
+  <div style="max-width:1000px; margin-left:auto; margin-right:auto;">
+    <h1>Trix Embed Demo 🙌</h1>
 
-  <trix-editor
-    data-controller="trix-embed"
-    data-action="trix-paste->trix-embed#paste">
-  </trix-editor>
+    <trix-editor
+      data-controller="trix-embed"
+      data-action="trix-paste->trix-embed#paste">
+    </trix-editor>
 
+  </div>
 </body>
 </html>

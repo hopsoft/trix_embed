@@ -51,5 +51,6 @@ function extractURLsFromElements(element) {
 export function extractURLs(element) {
   const elementURLs = extractURLsFromElements(element)
   const textNodeURLs = extractURLsFromTextNodes(element)
-  return [...elementURLs, ...textNodeURLs]
+  const uniqueURLs = new Set([...elementURLs, ...textNodeURLs])
+  return [...uniqueURLs]
 }

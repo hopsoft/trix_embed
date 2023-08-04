@@ -15,8 +15,7 @@
     "prettier": "^3.0.0"
   },
   "scripts": {
-    "build": "node bin/build.mjs",
-    "build:watch": "node bin/build.mjs --watch",
+    "build": "bin/standardize && node bin/build.mjs",
     "start": "http-server -c-1"
   }
 }

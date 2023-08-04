@@ -50,8 +50,11 @@ export default class extends Controller {
       }
     }
 
-    if (!mediaURLs.length) return // let Trix handle it
-    if (mediaURLs.length === validMediaURLs.length && !standardURLs.length) return // let Trix handle it
+    // we only have valid media urls
+    if (mediaURLs.length && mediaURLs.length === validMediaURLs.length && !standardURLs.length) return // let Trix handle it
+
+    // no media urls, and we have standard urls that are not valid
+    if (!mediaURLs.length && standardURLs.length && !validStandardURLs.length) return // let Trix handle it
 
     // no valid URLs .........................................................................................
     if (!validMediaURLs.length) {
@@ -63,10 +66,14 @@ export default class extends Controller {
     // at least one valid URL ................................................................................
 
     // render valid media URLs
-    validMediaURLs.forEach(url => this.attachContent(renderer.renderValid(url)))
+    if (validMediaURLs.length) validMediaURLs.forEach(url => this.attachContent(renderer.renderValid(url)))
 
-    // render standard URLs
-    this.attachContent(renderer.render(standardURLs.sort()))
+    // render valid standard URLs
+    if (validStandardURLs.length)
+      validStandardURLs.forEach(url => this.attachContent(renderer.renderValid(url)))
+
+    // render invalid standard URLs (default template)
+    if (invalidStandardURLs.length) this.attachContent(renderer.render(invalidStandardURLs.sort()))
 
     // render invalid media URLs
     if (invalidMediaURLs.length) this.attachContent(renderer.renderInvalid(invalidMediaURLs.sort()))
