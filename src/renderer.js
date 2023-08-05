@@ -1,3 +1,4 @@
+import { extractURLHosts } from './urls'
 import { getMediaType } from './media'
 
 export default class Renderer {
@@ -19,6 +20,20 @@ export default class Renderer {
       const template = document.getElementById(controller.validTemplateValue)
       if (template) this.validTemplate = template
     }
+  }
+
+  renderHeader(content) {
+    return `
+    <h1 style="background-color:ivory; border:solid 1px red; color:red; padding:5px; display:flex; align-items:center; font-size:1.25rem; line-height:1.5rem;">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="flex:1; width:1rem; height:1rem;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
+      </svg>
+      ${content}
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="flex:1; width:1rem; height:1rem;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
+      </svg>
+    </h1>
+    `
   }
 
   // Renders a URL as an HTML embed i.e. an iframe or media tag (img, video, audio etc.)
@@ -68,21 +83,24 @@ export default class Renderer {
   renderInvalid(urls = ['https://example.com', 'https://test.com']) {
     if (!urls?.length) return
     const element = this.invalidTemplate.content.firstElementChild.cloneNode(true)
+    const allowedHostsElement = element.querySelector('[data-list="allowed-hosts"]')
     const hostsElement = element.querySelector('[data-list="hosts"]')
-    const urlsElement = element.querySelector('[data-list="urls"]')
 
-    if (hostsElement)
+    if (allowedHostsElement)
       if (this.hosts.length)
-        hostsElement.innerHTML = this.hosts.map(host => `<li><code>${host}</code></li>`).join('')
+        allowedHostsElement.innerHTML = this.hosts.map(host => `<li><code>${host}</code></li>`).join('')
       else
-        hostsElement.innerHTML = `
+        allowedHostsElement.innerHTML = `
           <li>
-            <strong>Hosts not configured</strong>
-            <p>Example Configuration</p>
-            <pre><code>&lt;trix-editor data-trix-embed-hosts-value='["example.com", "test.com"]'&gt;</code></pre>
-          </li>`
+            <strong>Allowed hosts not configured yet.</strong>
+          </li>
+        `
 
-    if (urlsElement) urlsElement.innerHTML = urls.map(url => `<li><code>${url}</code></li>`).join('')
+    if (hostsElement) {
+      const hosts = extractURLHosts(urls)
+      if (hosts.length) hostsElement.innerHTML = hosts.map(host => `<li><code>${host}</code></li>`).join('')
+      else hostsElement.innerHTML = '<li><code>Media is only supported from allowed hosts.</code></li>'
+    }
 
     return element.outerHTML
   }
@@ -126,14 +144,15 @@ export default class Renderer {
 
     const template = document.createElement('template')
     template.innerHTML = `
-      <div style="background-color:ivory; border:solid 1px red; color:red; padding:10px;">
-        <h1 slot="header">Unsupported copy/paste embed!</h1>
-        <h2>The pasted content includes media from an unsupported host.</h2>
-        <h3 style="color:green;">Supported Hosts</h3>
-        <ul data-list="hosts" style="color:green;"></ul>
-        <h2>Invalid URLs</h2>
-        <ul data-list="urls"></ul>
-      </div>`
+      <div style="background-color:ivory; border:solid 1px red; color:red; padding:15px; font-size:1rem;">
+        <h1 slot="header">Copy / Paste Errors!</h1>
+        <h4>The pasted content includes media from unsupported hosts.</h4>
+        <h2 style="color:green;">Allowed Hosts / Domains</h2>
+        <ul data-list="allowed-hosts" style="color:green;"></ul>
+        <h2>Prohibited Hosts</h2>
+        <ul data-list="hosts"></ul>
+      </div>
+    `
     return template
   }
 }

@@ -1,10 +1,13 @@
 function createURL(value, callback) {
   try {
-    const url = new URL(String(value).trim())
-    callback(url.href)
+    callback(new URL(String(value).trim()))
   } catch (error) {
     console.error(`Error parsing URL!`, value, error)
   }
+}
+
+function createURLHost(value, callback) {
+  createURL(value, url => callback(url.host))
 }
 
 function extractURLsFromTextNodes(element) {
@@ -22,7 +25,7 @@ function extractURLsFromTextNodes(element) {
       .filter(val => val.startsWith('http'))
       .forEach(match =>
         createURL(match, url => {
-          if (!urls.includes(url)) urls.push(url)
+          if (!urls.includes(url.href)) urls.push(url.href)
         })
       )
 
@@ -32,20 +35,35 @@ function extractURLsFromTextNodes(element) {
 function extractURLsFromElements(element) {
   const urls = []
 
-  if (element.src) createURL(element.src, url => urls.push(url))
+  if (element.src) createURL(element.src, url => urls.push(url.href))
   if (element.href)
     createURL(element.href, url => {
-      if (!urls.includes(url)) urls.push(url)
+      if (!urls.includes(url.href)) urls.push(url.href)
     })
 
   const elements = element.querySelectorAll('[src], [href]')
   elements.forEach(el => {
     createURL(el.src || el.href, url => {
-      if (!urls.includes(url)) urls.push(url)
+      if (!urls.includes(url.href)) urls.push(url.href)
     })
   })
 
   return urls
+}
+
+export function validateURL(value, allowedHosts = []) {
+  let valid = false
+  createURLHost(value, host => (valid = !!allowedHosts.find(allowedHost => host.includes(allowedHost))))
+  return valid
+}
+
+export function extractURLHosts(values) {
+  return values.reduce((hosts, value) => {
+    createURLHost(value, host => {
+      if (!hosts.includes(host)) hosts.push(host)
+    })
+    return hosts
+  }, [])
 }
 
 export function extractURLs(element) {
