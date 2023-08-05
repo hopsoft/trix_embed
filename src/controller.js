@@ -24,79 +24,41 @@ export default class extends Controller {
     const pastedTemplate = this.buildPastedTemplate(content)
     const pastedURLs = extractURLs(pastedTemplate.content.firstElementChild)
 
-    // no URLs were pasted, let Trix handle it
+    // no URLs were pasted, let Trix handle it ...............................................................
     if (!pastedURLs.length) return
 
-    // Media URLs
+    event.preventDefault()
+    this.editor.setSelectedRange(range)
+    const renderer = new Renderer(this)
+
+    // Media URLs (images, videos, audio etc.)
     const mediaURLs = pastedURLs.filter(url => getMediaType(url))
     Array.from(pastedTemplate.content.firstElementChild.querySelectorAll('iframe')).forEach(frame => {
       if (!mediaURLs.includes(frame.src)) mediaURLs.push(frame.src)
     })
     const validMediaURLs = mediaURLs.filter(url => this.validateURL(url))
+    const validMediaContent = renderer.renderValid(validMediaURLs)
     const invalidMediaURLs = mediaURLs.filter(url => !validMediaURLs.includes(url))
+    const invalidMediaContent = renderer.renderInvalid(invalidMediaURLs)
 
-    // Standard URLs
+    // Standard URLs (non-media resources i.e. web pages etc.)
     const standardURLs = pastedURLs.filter(url => !mediaURLs.includes(url))
     const validStandardURLs = standardURLs.filter(url => this.validateURL(url))
+    const validStandardContent = renderer.renderValid(validStandardURLs)
     const invalidStandardURLs = standardURLs.filter(url => !validStandardURLs.includes(url))
+    const invalidStandardContent = renderer.renderLinks(invalidStandardURLs)
 
-    // we only have valid media urls, let Trix handle it
-    if (validMediaURLs.length && !invalidMediaURLs && !standardURLs.length) return
-
-    event.preventDefault() // taking control from here
-    const renderer = new Renderer(this)
-
-    // a single URL was pasted ...............................................................................
-    if (pastedURLs.length === 1)
-      if (this.validateURL(pastedURLs[0]))
-        return this.attachContent(renderer.renderValid(pastedURLs[0]), { range })
-
-    // we only have invalid standard urls
-    if (invalidStandardURLs.length && !validStandardURLs.length && !mediaURLs.length) {
-      this.editor.setSelectedRange(range)
-      return setTimeout(() => {
-        this.editor.deleteInDirection('backward')
-        this.editor.insertHTML(renderer.renderLinks(invalidStandardURLs))
-        this.editor.insertLineBreak()
+    // 1. render invalid media urls
+    this.insert(invalidMediaContent, { disposition: 'attachment', first: true }).then(() => {
+      // 2. render invalid standard urls
+      this.insert(invalidStandardContent, { disposition: 'inline' }).then(() => {
+        // 3. render valid media urls
+        this.insert(validMediaContent, { disposition: 'attachment' }).then(() => {
+          // 4. render valid standard urls
+          this.insert(validStandardContent, { disposition: 'attachment' })
+        })
       })
-    }
-
-    // media URLs are all invalid ............................................................................
-    if (!validMediaURLs.length && invalidMediaURLs.length) {
-      this.attachContent(renderer.renderInvalid(invalidMediaURLs.sort()), {
-        range,
-        move: !invalidStandardURLs.length
-      }).then(() => {
-        if (invalidStandardURLs.length) {
-          this.editor.insertHTML(renderer.renderLinks(invalidStandardURLs))
-          this.editor.insertLineBreak()
-        }
-      })
-    }
-
-    console.log('nate: early return')
-    return
-
-    // at least one valid URL ................................................................................
-
-    // render valid media URLs
-    if (validMediaURLs.length) validMediaURLs.forEach(url => this.attachContent(renderer.renderValid(url)))
-
-    // render valid standard URLs
-    if (validStandardURLs.length)
-      validStandardURLs.forEach(url => this.attachContent(renderer.renderValid(url)))
-
-    // render invalid standard URLs (default template)
-    //if (invalidStandardURLs.length) this.attachContent(renderer.render(invalidStandardURLs.sort()))
-    if (invalidStandardURLs.length) {
-      this.removePastedContent(range)
-      invalidStandardURLs.forEach((url, i) => this.dispatchPasteEventLater(url, i * 50))
-    }
-
-    // render invalid media URLs
-    if (invalidMediaURLs.length) this.attachContent(renderer.renderInvalid(invalidMediaURLs.sort()))
-
-    this.removePastedContent(range)
+    })
   }
 
   buildPastedTemplate(content) {
@@ -110,58 +72,56 @@ export default class extends Controller {
     return !!this.hostsValue.find(host => url.host.includes(host))
   }
 
-  // removePastedContent(options = {}) {
-  //   const { range, move, direction } = options
-  //   this.editor.setSelectedRange(range)
-  //   this.editor.deleteInDirection('backward')
-  //   if (move) setTimeout(() => this.editor.moveCursorInDirection(direction))
-  // }
-
-  attachContent(content, options = { range: null, delay: 0, move: true, direction: 'backward' }) {
-    if (!content) return
-
-    const { range, delay, move, direction } = options
-    if (range) this.editor.setSelectedRange(range)
-
+  insertAttachment(content, options = { delay: 0 }) {
+    const { delay } = options
     return new Promise(resolve => {
       setTimeout(() => {
-        if (range) this.editor.deleteInDirection('backward')
         const attachment = new Trix.Attachment({ content })
         this.editor.insertAttachment(attachment)
-        if (move) this.editor.moveCursorInDirection(direction)
         resolve()
       }, delay)
     })
-
-    //this.editor.moveCursorInDirection('forward')
-
-    //return new Promise(resolve =>
-    //  setTimeout(() => {
-    //    // this.removePastedContent(options)
-
-    //    console.log('hi there')
-    //    this.editor.setSelectedRange(range)
-    //    this.editor.deleteInDirection('backward')
-    //    this.editor.moveCursorInDirection('forward')
-
-    //    resolve()
-    //  }, options.delay)
-    //)
   }
 
-  renderURLsAsLinks(urls) {}
-
-  dispatchPasteEvent(url, options = { delay: 0 }) {
+  insertHTML(content, options = { delay: 0 }) {
     const { delay } = options
-    const pasteEvent = new ClipboardEvent('paste', {
-      bubbles: true,
-      cancelable: true,
-      composed: true,
-      clipboardData: new DataTransfer()
+    return new Promise(resolve => {
+      setTimeout(() => {
+        this.editor.insertHTML(content)
+        this.editor.insertLineBreak()
+        resolve()
+      }, delay)
     })
-    pasteEvent.clipboardData.setData('text/plain', url)
-    this.element.dispatchEvent(pasteEvent)
-    return new Promise(resolve => setTimeout(resolve, delay))
+  }
+
+  insert(content, options = { disposition: 'attachment', first: false }) {
+    const { disposition, first } = options
+
+    if (content?.length) {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          if (first) this.editor.deleteInDirection('backward')
+
+          if (typeof content === 'string') {
+            if (disposition === 'inline') return this.insertHTML(content).then(resolve)
+            else return this.insertAttachment(content).then(resolve)
+          }
+
+          if (Array.isArray(content)) {
+            if (disposition === 'inline')
+              return content.reduce((p, c, i) => p.then(this.insertHTML(c)), Promise.resolve()).then(resolve)
+            else
+              return content
+                .reduce((p, c, i) => p.then(this.insertAttachment(c)), Promise.resolve())
+                .then(resolve)
+          }
+
+          resolve()
+        })
+      })
+    }
+
+    return Promise.resolve()
   }
 
   get editor() {

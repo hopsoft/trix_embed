@@ -1,6 +1,9 @@
 import { getMediaType } from './media'
 
 export default class Renderer {
+  // Constructs a new Renderer instance
+  //
+  // @param {Controller} controller - a Stimulus Controller instance
   constructor(controller) {
     this.controller = controller
     this.hosts = controller.hostsValue
@@ -18,11 +21,11 @@ export default class Renderer {
     }
   }
 
-  renderLinks(urls) {
-    return urls.map(url => `<a href='${url}' target='_blank'>${url}</a>`).join('<br>')
-  }
-
-  renderValid(url) {
+  // Renders a URL as an HTML embed i.e. an iframe or media tag (img, video, audio etc.)
+  //
+  // @param {String} url - URL
+  // @returns {String} HTML
+  render(url = 'https://example.com') {
     const element = this.validTemplate.content.firstElementChild.cloneNode(true)
     const iframe = element.querySelector('iframe')
     const img = element.querySelector('img')
@@ -37,7 +40,33 @@ export default class Renderer {
     return element.outerHTML
   }
 
-  renderInvalid(urls) {
+  // Renders a list of URLs as HTML links i.e. anchor tags <a>
+  //
+  // @param {String[]} urls - list of URLs
+  // @returns {String[]} list of individual HTML links
+  //
+  renderLinks(urls = ['https://example.com', 'https://test.com']) {
+    if (!urls?.length) return
+    return urls.map(url => `<a href='${url}' target='_blank'>${url}</a>`)
+  }
+
+  // Renders a list of URLs as HTML embeds i.e. iframes or media tags (img, video, audio etc.)
+  //
+  // @param {String[]} urls - list of URLs
+  // @returns {String[]} list of individual HTML embeds
+  //
+  renderValid(urls = ['https://example.com', 'https://test.com']) {
+    if (!urls?.length) return
+    return urls.map(url => this.render(url))
+  }
+
+  // Renders a list of URLs as an HTML error block
+  //
+  // @param {String[]} urls - list of URLs
+  // @returns {String} HTML
+  //
+  renderInvalid(urls = ['https://example.com', 'https://test.com']) {
+    if (!urls?.length) return
     const element = this.invalidTemplate.content.firstElementChild.cloneNode(true)
     const hostsElement = element.querySelector('[data-list="hosts"]')
     const urlsElement = element.querySelector('[data-list="urls"]')
@@ -58,10 +87,19 @@ export default class Renderer {
     return element.outerHTML
   }
 
+  // Sets the template for valid URLs
+  //
+  // @param {String} template - the template HTML
+  // @returns {void}
+  //
   set validTemplate(template) {
     this._validTemplate = template
   }
 
+  // Returns the template for valid URLs
+  //
+  // @returns {String} template HTML
+  //
   get validTemplate() {
     if (this._validTemplate) return this._validTemplate
 
@@ -70,10 +108,19 @@ export default class Renderer {
     return template
   }
 
+  // Sets the template for invalid URLs
+  //
+  // @param {String} template - the template HTML
+  // @returns {void}
+  //
   set invalidTemplate(template) {
     this._invalidTemplate = template
   }
 
+  // Returns the template for invalid URLs
+  //
+  // @returns {String} template HTML
+  //
   get invalidTemplate() {
     if (this._invalidTemplate) return this._invalidTemplate
 
