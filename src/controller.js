@@ -60,12 +60,14 @@ export default class extends Controller {
       this.insert(renderer.renderHeader('Pasted URLs')).then(() => {
         this.insert(invalidStandardURLContent, { disposition: 'inline' }).then(() => {
           // 3. render valid media urls
-          this.insert(validMediaURLContent).then(() => {
-            // 4. render valid standard urls
-            this.insert(validStandardURLContent).then(() => {
-              // 5. render the pasted content as sanitized HTML
-              this.insert(renderer.renderHeader('Pasted Content')).then(() => {
-                this.insert(sanitizedPastedContent, { disposition: 'inline' })
+          this.insert(renderer.renderHeader('Embedded Media')).then(() => {
+            this.insert(validMediaURLContent).then(() => {
+              // 4. render valid standard urls
+              this.insert(validStandardURLContent).then(() => {
+                // 5. render the pasted content as sanitized HTML
+                this.insert(renderer.renderHeader('Pasted Content')).then(() => {
+                  this.insert(sanitizedPastedContent, { disposition: 'inline' })
+                })
               })
             })
           })
