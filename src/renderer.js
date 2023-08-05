@@ -5,12 +5,6 @@ export default class Renderer {
     this.controller = controller
     this.hosts = controller.hostsValue
 
-    // default urls template
-    if (controller.templateValue) {
-      const template = document.getElementById(controller.templateValue)
-      if (template) this.template = template
-    }
-
     // invalid urls template
     if (controller.invalidTemplateValue) {
       const template = document.getElementById(controller.invalidTemplateValue)
@@ -24,27 +18,8 @@ export default class Renderer {
     }
   }
 
-  render(urls) {
-    const element = this.template.content.firstElementChild.cloneNode(true)
-    const urlsTemplate = element.querySelector('[data-list="urls"]')
-    const urlTemplate = urlsTemplate.querySelector('[data-item="url"]')
-
-    urlTemplate.remove()
-
-    urls.forEach(url => {
-      const urlElement = urlTemplate.cloneNode(true)
-      const linkElement = urlElement.querySelector('[data-link]')
-      if (linkElement) {
-        linkElement.href = url
-        linkElement.textContent = url
-        element.appendChild(urlElement)
-      } else {
-        urlElement.textContent = url
-        element.appendChild(urlElement)
-      }
-    })
-
-    return element.outerHTML
+  renderLinks(urls) {
+    return urls.map(url => `<a href='${url}' target='_blank'>${url}</a>`).join('<br>')
   }
 
   renderValid(url) {
@@ -81,26 +56,6 @@ export default class Renderer {
     if (urlsElement) urlsElement.innerHTML = urls.map(url => `<li><code>${url}</code></li>`).join('')
 
     return element.outerHTML
-  }
-
-  set template(template) {
-    this._template = template
-  }
-
-  get template() {
-    if (this._template) return this._template
-
-    const template = document.createElement('template')
-    template.innerHTML = `
-      <div>
-        <h1>External Links</h1>
-        <ul data-list="urls">
-          <li data-item="url">
-            <a data-link target="_blank"></a>
-          </li>
-        </ul>
-      </div>`
-    return template
   }
 
   set validTemplate(template) {
