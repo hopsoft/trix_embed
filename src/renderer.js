@@ -63,10 +63,12 @@ export default class Renderer {
   // @returns {String[]} list of individual HTML links
   //
   renderLinks(urls = ['https://example.com', 'https://test.com']) {
-    urls = urls.reduce((list, url) => {
-      createURL(url, u => list.push(u))
-      return list
-    }, urls || [])
+    urls = urls
+      .reduce((list, url) => {
+        createURL(url, u => list.push(u))
+        return list
+      }, urls || [])
+      .sort()
 
     if (!urls.length) return
     const links = urls.map(url => `<li><a href='${url}'>${url}</a></li>`)

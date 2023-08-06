@@ -58,9 +58,7 @@ export default class extends Controller {
     //console.debug('invalidStandardURLs', invalidStandardURLs.length, invalidStandardURLs)
     //console.debug('invalidStandardURLContent', invalidStandardUinvalidStandardURLContentRLContent)
 
-    // sanitize the pasted content by removing all media tags
-    const sanitizedPastedElement = pastedElement.cloneNode(true)
-    sanitizedPastedElement.querySelectorAll(mediaTags.join(', ')).forEach(tag => tag.remove())
+    const sanitizedPastedElement = this.sanitizePastedElement(pastedElement)
     const sanitizedPastedContent = sanitizedPastedElement.innerHTML
 
     // 1. render invalid media urls
@@ -92,6 +90,12 @@ export default class extends Controller {
     return template
   }
 
+  sanitizePastedElement(element) {
+    element = element.cloneNode(true)
+    element.querySelectorAll(mediaTags.join(', ')).forEach(tag => tag.remove())
+    return element
+  }
+
   insertAttachment(content, options = { delay: 0 }) {
     const { delay } = options
     return new Promise(resolve => {
@@ -108,6 +112,7 @@ export default class extends Controller {
     return new Promise(resolve => {
       setTimeout(() => {
         this.editor.insertHTML(content)
+        // shenanigans to ensure that Trix considers this block of content closed
         this.editor.moveCursorInDirection('forward')
         this.editor.insertLineBreak()
         this.editor.moveCursorInDirection('backward')
