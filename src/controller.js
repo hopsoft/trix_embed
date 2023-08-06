@@ -10,12 +10,18 @@ import { Controller } from 'https://unpkg.com/@hotwired/stimulus@3.2.1/dist/stim
 export default class extends Controller {
   static values = {
     hosts: Array, // list of hosts/domains that embeds are allowed from
+    hostsKey: String, // encryption key used to encrypt/decrypt allowed hosts
+    hostsList: Array, // list of encrypted hosts/domains that embeds are allowed from
     validTemplate: String, // dom id of template to use for valid embeds
     invalidTemplate: String // dom id of template to use for invalid embeds
   }
 
   connect() {
-    this.setupWeakSecurity()
+    this.rememberEncryptionKey()
+  }
+
+  disconnect() {
+    this.forgetEncryptionKey()
   }
 
   paste(event) {
@@ -161,23 +167,21 @@ export default class extends Controller {
   // Weak security through obscurity and indirection
   // =========================================================================================================
 
-  setupWeakSecurity() {
-    const idElement = this.element.closest('[id]')
-    const id = idElement ? idElement.id : ''
-
-    this.hostsKey = `trix-embed-hosts-${id}`
-
-    if (this.rememberedHosts) this.hostsValue = this.rememberedHosts
-    this.rememberHosts()
+  get storageKey() {
+    return btoa(`hopsoft/trix_embed/${this.element.closest('[id]')?.id}`)
   }
 
-  rememberHosts() {
-    sessionStorage.setItem(this.hostsKey, JSON.stringify(this.hostsValue))
+  get encryptionKey() {
+    return sessionStorage.getItem(this.storageKey)
   }
 
-  get rememberedHosts() {
-    const json = sessionStorage.getItem(this.hostsKey)
-    if (!json) return null
-    return JSON.parse(json)
+  rememberEncryptionKey() {
+    if (!this.hasHostsKeyValue) return
+    sessionStorage.setItem(this.storageKey, this.hostsKeyValue)
+    this.element.removeAttribute('data-trix-embed-hosts-key-value')
+  }
+
+  forgetEncryptionKey() {
+    sessionStorage.removeItem(this.storageKey)
   }
 }
