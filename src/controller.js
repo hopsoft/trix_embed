@@ -1,6 +1,6 @@
 //import Trix from 'trix'
 //import { Controller } from '@hotwired/stimulus'
-import { extractURLs, validateURL } from './urls'
+import { extractURLsFromElement, validateURL } from './urls'
 import { getMediaType, mediaTags } from './media'
 import Renderer from './renderer'
 
@@ -23,7 +23,8 @@ export default class extends Controller {
     let content = html || string || ''
     const pastedTemplate = this.buildPastedTemplate(content)
     const pastedElement = pastedTemplate.content.firstElementChild
-    const pastedURLs = extractURLs(pastedElement)
+    const pastedURLs = extractURLsFromElement(pastedElement)
+    //console.debug('pastedURLs', pastedURLs?.length, pastedURLs)
 
     // no URLs were pasted, let Trix handle it ...............................................................
     if (!pastedURLs.length) return
@@ -41,6 +42,10 @@ export default class extends Controller {
     const validMediaURLContent = renderer.renderValid(validMediaURLs)
     const invalidMediaURLs = mediaURLs.filter(url => !validMediaURLs.includes(url))
     const invalidMediaURLContent = renderer.renderInvalid(invalidMediaURLs)
+    //console.debug('validMediaURLs', validMediaURLs.length, validMediaURLs)
+    //console.debug('validMediaURLContent', validMediaURLContent)
+    //console.debug('invalidMediaURLs', invalidMediaURLs.length, invalidMediaURLs)
+    //console.debug('invalidMediaURLContent', invalidMediaURLContent)
 
     // Standard URLs (non-media resources i.e. web pages etc.)
     const standardURLs = pastedURLs.filter(url => !mediaURLs.includes(url))
@@ -48,6 +53,10 @@ export default class extends Controller {
     const validStandardURLContent = renderer.renderValid(validStandardURLs)
     const invalidStandardURLs = standardURLs.filter(url => !validStandardURLs.includes(url))
     const invalidStandardURLContent = renderer.renderLinks(invalidStandardURLs)
+    //console.debug('validStandardURLs', validStandardURLs.length, validStandardURLs)
+    //console.debug('validStandardURLContent', validStandardURLContent)
+    //console.debug('invalidStandardURLs', invalidStandardURLs.length, invalidStandardURLs)
+    //console.debug('invalidStandardURLContent', invalidStandardUinvalidStandardURLContentRLContent)
 
     // sanitize the pasted content by removing all media tags
     const sanitizedPastedElement = pastedElement.cloneNode(true)
@@ -57,15 +66,16 @@ export default class extends Controller {
     // 1. render invalid media urls
     this.insert(invalidMediaURLContent, { first: true }).then(() => {
       // 2. render invalid standard urls
-      this.insert(renderer.renderHeader('Pasted URLs')).then(() => {
+      this.insert(renderer.renderHeader('Pasted URLs', invalidStandardURLContent)).then(() => {
         this.insert(invalidStandardURLContent, { disposition: 'inline' }).then(() => {
           // 3. render valid media urls
-          this.insert(renderer.renderHeader('Embedded Media')).then(() => {
+          this.insert(renderer.renderHeader('Embedded Media', validMediaURLContent)).then(() => {
             this.insert(validMediaURLContent).then(() => {
               // 4. render valid standard urls
               this.insert(validStandardURLContent).then(() => {
                 // 5. render the pasted content as sanitized HTML
-                this.insert(renderer.renderHeader('Pasted Content')).then(() => {
+                this.insert(renderer.renderHeader('Pasted Content', sanitizedPastedContent)).then(() => {
+                  this.editor.insertLineBreak()
                   this.insert(sanitizedPastedContent, { disposition: 'inline' })
                 })
               })
@@ -98,7 +108,9 @@ export default class extends Controller {
     return new Promise(resolve => {
       setTimeout(() => {
         this.editor.insertHTML(content)
+        this.editor.moveCursorInDirection('forward')
         this.editor.insertLineBreak()
+        this.editor.moveCursorInDirection('backward')
         resolve()
       }, delay)
     })

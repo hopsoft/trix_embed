@@ -1,13 +1,31 @@
-function createURL(value, callback) {
+// Creates a URL object from a value and yields the result
+//
+// @param {String} value - Value to convert to a URL (coerced to a string)
+// @param {Function} callback - Function to be called with the URL object
+// @returns {URL, null} URL object
+//
+export function createURL(value, callback = url => {}) {
   try {
-    callback(new URL(String(value).trim()))
-  } catch (error) {
-    console.error(`Error parsing URL!`, value, error)
+    const url = new URL(String(value).trim())
+    if (callback) callback(url)
+    return url
+  } catch (_error) {
+    console.info('trix-embed', `Failed to parse URL! value='${value}']`)
   }
+  return null
 }
 
-function createURLHost(value, callback) {
-  createURL(value, url => callback(url.host))
+// Creates a URL host from a value and yields the result
+//
+// @param {String} value - Value to convert to a URL host (coerced to a string)
+// @param {Function} callback - Function to be called with the URL host
+// @returns {String, null} URL host
+//
+function createURLHost(value, callback = host => {}) {
+  let host = null
+  createURL(value, url => (host = url.host))
+  if (host && callback) callback(host)
+  return host
 }
 
 function extractURLsFromTextNodes(element) {
@@ -66,7 +84,12 @@ export function extractURLHosts(values) {
   }, [])
 }
 
-export function extractURLs(element) {
+// Extracts all URLs from an HTML element (all inclusive i.e. elements and text nodes)
+//
+// @param {HTMLElement} element - HTML element
+// @returns {String[]} list of unique URLs
+//
+export function extractURLsFromElement(element) {
   const elementURLs = extractURLsFromElements(element)
   const textNodeURLs = extractURLsFromTextNodes(element)
   const uniqueURLs = new Set([...elementURLs, ...textNodeURLs])
