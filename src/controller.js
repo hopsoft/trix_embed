@@ -22,6 +22,9 @@ export default class extends Controller {
 
   disconnect() {
     this.forgetEncryptionKey()
+
+    // prevent this controller from being reconnected
+    //this.closest('form').removeEventListener('submit', this.submitListener)
   }
 
   paste(event) {
@@ -48,6 +51,7 @@ export default class extends Controller {
     const validMediaURLContent = renderer.renderValid(validMediaURLs)
     const invalidMediaURLs = mediaURLs.filter(url => !validMediaURLs.includes(url))
     const invalidMediaURLContent = renderer.renderInvalid(invalidMediaURLs)
+    //console.log('mediaURLs', mediaURLs.length, mediaURLs)
     //console.debug('validMediaURLs', validMediaURLs.length, validMediaURLs)
     //console.debug('validMediaURLContent', validMediaURLContent)
     //console.debug('invalidMediaURLs', invalidMediaURLs.length, invalidMediaURLs)
@@ -59,6 +63,7 @@ export default class extends Controller {
     const validStandardURLContent = renderer.renderValid(validStandardURLs)
     const invalidStandardURLs = standardURLs.filter(url => !validStandardURLs.includes(url))
     const invalidStandardURLContent = renderer.renderLinks(invalidStandardURLs)
+    //console.debug('standardURLs', standardURLs.length, standardURLs)
     //console.debug('validStandardURLs', validStandardURLs.length, validStandardURLs)
     //console.debug('validStandardURLContent', validStandardURLContent)
     //console.debug('invalidStandardURLs', invalidStandardURLs.length, invalidStandardURLs)

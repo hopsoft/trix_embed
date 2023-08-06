@@ -64,10 +64,11 @@ export default class Renderer {
   //
   renderLinks(urls = ['https://example.com', 'https://test.com']) {
     urls = urls
-      .reduce((list, url) => {
-        createURL(url, u => list.push(u))
-        return list
-      }, urls || [])
+      .filter(url => {
+        let ok = false
+        createURL(url, u => (ok = true))
+        return ok
+      })
       .sort()
 
     if (!urls.length) return
