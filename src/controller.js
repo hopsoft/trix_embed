@@ -3,6 +3,7 @@
 import { extractURLsFromElement, validateURL } from './urls'
 import { getMediaType, mediaTags } from './media'
 import Renderer from './renderer'
+import { lockDown } from './security'
 
 // imports for developing and testing with test/index.html
 import { Controller } from 'https://unpkg.com/@hotwired/stimulus@3.2.1/dist/stimulus.js'
@@ -12,6 +13,7 @@ export default class extends Controller {
     hosts: Array, // list of hosts/domains that embeds are allowed from
     hostsKey: String, // encryption key used to encrypt/decrypt allowed hosts
     hostsList: Array, // list of encrypted hosts/domains that embeds are allowed from
+    paranoid: Boolean, // lock down the form when this controller is disconnected
     validTemplate: String, // dom id of template to use for valid embeds
     invalidTemplate: String // dom id of template to use for invalid embeds
   }
@@ -22,25 +24,7 @@ export default class extends Controller {
 
   disconnect() {
     this.forgetEncryptionKey()
-    this.remove()
-
-    // 3. add a dom mutation event listener to the form that
-    //    - prevents the addition of new trix editor elements to the form
-    //    - prevent the addition of new input or textarea elements to the form that have the same name or id as this.element
-
-    // Create a new MutationObserver
-    const observer = new MutationObserver((mutationsList, observer) => {
-      for (const mutation of mutationsList) {
-        // Handle the mutation here
-        console.log('Mutation detected:', mutation)
-      }
-    })
-
-    // Configuration for the observer (specify what changes to watch for)
-    const config = { attributes: true, childList: true, subtree: true }
-
-    // Start observing the target element
-    observer.observe(targetElement, config)
+    if (this.paranoidValue) lockDown(this)
   }
 
   paste(event) {
@@ -180,12 +164,6 @@ export default class extends Controller {
     return Promise.resolve()
   }
 
-  remove() {
-    this.inputElement?.remove()
-    this.toolbarElement?.remove()
-    this.element.remove()
-  }
-
   preventConnect() {
     const observer = new MutationObserver((mutations, observer) => {
       mutations.forEach(mutation => {
@@ -205,21 +183,17 @@ export default class extends Controller {
     return this.element.editor
   }
 
-  // Returns the Trix toolbar element
-  //
-  // @returns {HTMLElement}
-  //
   get toolbarElement() {
     const sibling = this.element.previousElementSibling
     return siibling?.tagName.match(/trix-toolbar/i) ? sibling : null
   }
 
-  // Returns the input element associated with the Trix editor
-  //
-  // @returns {HTMLElement}
-  //
   get inputElement() {
     return document.getElementById(this.element.getAttribute('input'))
+  }
+
+  get formElement() {
+    return this.element.closest('form')
   }
 
   // =========================================================================================================

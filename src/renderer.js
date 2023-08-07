@@ -156,16 +156,17 @@ export default class Renderer {
     const template = document.createElement('template')
     template.innerHTML = `
       <div style="background-color:ivory; border:solid 1px red; color:red; padding:15px; font-size:1rem; line-height:1.5rem;">
-        <h1 class="display:flex; align-items:center;">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem; height:1rem; transform: scale(1.5);">
+        <h1 style="display:flex; align-items:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="flex:1; width:1rem; height:1rem; transform: scale(1.5);">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
           </svg>
-          <span style="margin-left:5px; margin-right:5px;">Copy / Paste</span>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem; height:1rem; transform: scale(1.5);">
+          Copy / Paste
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="flex:1; width:1rem; height:1rem; transform: scale(1.5);">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
           </svg>
         </h1>
-        <h3 style="font-weight:normal;">The pasted content includes media from unsupported hosts / domains.</h3>
+
+        <h3 style="padding:15px; font-weight:normal; border-top:solid 1px red; border-bottom:solid 1px red;">The pasted content includes media from unsupported hosts / domains.</h3>
 
         <h2>Prohibited Hosts / Domains</h2>
         <ul data-list="hosts"></ul>

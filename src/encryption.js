@@ -4,7 +4,7 @@ const purposes = ['encrypt', 'decrypt']
 
 // Generates a key for use with a symmetric encryption algorithm
 //
-// @returns {CryptoKey} - The generated key
+// @returns {Promise<CryptoKey>} - The generated key
 //
 async function generateKey() {
   const extractable = true // makes it possible to export the key later
@@ -15,7 +15,7 @@ async function generateKey() {
 // Exports an encryption key
 //
 // @param {CryptoKey} key - The key to export
-// @returns {String} - The exported key as a JSON string
+// @returns {Promise<String>} - The exported key as a JSON string
 //
 async function exportKey(key) {
   const exported = await crypto.subtle.exportKey('jwk', key)
@@ -25,7 +25,7 @@ async function exportKey(key) {
 // Imports an encryption key
 //
 // @param {String} key - The key to import as a string
-// @returns {CryptoKey} - The imported key
+// @returns {Promise<CryptoKey>} - The imported key
 //
 async function importKey(key) {
   const parsed = JSON.parse(key)
@@ -36,7 +36,7 @@ async function importKey(key) {
 //
 // @param {String} value - The value to encrypt
 // @param {CryptoKey} key - The key to use for encryption
-// @returns {String} - Base64 encoded representation of the encrypted value
+// @returns {Promise<String>} - Base64 encoded representation of the encrypted value
 //
 async function encrypt(value, key) {
   const encoded = new TextEncoder().encode(String(value))
@@ -53,7 +53,7 @@ async function encrypt(value, key) {
 //
 // @param {String} encrypted - The Base64 encoded encrypted value
 // @param {CryptoKey} key - The key to use for decryption
-// @returns {String} - The decrypted value
+// @returns {Promise<String>} - The decrypted value
 //
 async function decrypt(encrypted, key) {
   const data = JSON.parse(atob(encrypted))
@@ -73,6 +73,9 @@ async function decrypt(encrypted, key) {
 }
 
 // Generates a new encryption key
+//
+// @returns {Promise<Object>} - The encryption key and base64 encoded key
+//
 export async function generateEncryptionKey() {
   const key = await generateKey()
   const jsonKey = await exportKey(key)
