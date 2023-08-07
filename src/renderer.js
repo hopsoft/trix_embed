@@ -22,8 +22,7 @@ export default class Renderer {
     }
   }
 
-  renderHeader(value, content = '') {
-    if (!content?.length) return
+  renderHeader(value) {
     return `
     <h1 style="background-color:ivory; border:solid 1px red; color:red; padding:5px; display:flex; align-items:center; font-size:1.25rem; line-height:1.5rem;">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="flex:1; width:1rem; height:1rem;">

@@ -27,13 +27,14 @@ export default class extends Controller {
     if (this.paranoidValue) lockDown(this)
   }
 
-  paste(event) {
+  async paste(event) {
     const { html, string, range } = event.paste
     let content = html || string || ''
     const pastedTemplate = this.buildPastedTemplate(content)
     const pastedElement = pastedTemplate.content.firstElementChild
+    const sanitizedPastedElement = this.sanitizePastedElement(pastedElement)
+    const sanitizedPastedContent = sanitizedPastedElement.innerHTML.trim()
     const pastedURLs = extractURLsFromElement(pastedElement)
-    //console.debug('pastedURLs', pastedURLs?.length, pastedURLs)
 
     // no URLs were pasted, let Trix handle it ...............................................................
     if (!pastedURLs.length) return
@@ -48,51 +49,47 @@ export default class extends Controller {
       if (!mediaURLs.includes(frame.src)) mediaURLs.push(frame.src)
     })
     const validMediaURLs = mediaURLs.filter(url => validateURL(url, this.hostsValue))
-    const validMediaURLContent = renderer.renderValid(validMediaURLs)
     const invalidMediaURLs = mediaURLs.filter(url => !validMediaURLs.includes(url))
-    const invalidMediaURLContent = renderer.renderInvalid(invalidMediaURLs)
-    //console.log('mediaURLs', mediaURLs.length, mediaURLs)
-    //console.debug('validMediaURLs', validMediaURLs.length, validMediaURLs)
-    //console.debug('validMediaURLContent', validMediaURLContent)
-    //console.debug('invalidMediaURLs', invalidMediaURLs.length, invalidMediaURLs)
-    //console.debug('invalidMediaURLContent', invalidMediaURLContent)
 
     // Standard URLs (non-media resources i.e. web pages etc.)
     const standardURLs = pastedURLs.filter(url => !mediaURLs.includes(url))
     const validStandardURLs = standardURLs.filter(url => validateURL(url, this.hostsValue))
-    const validStandardURLContent = renderer.renderValid(validStandardURLs)
     const invalidStandardURLs = standardURLs.filter(url => !validStandardURLs.includes(url))
-    const invalidStandardURLContent = renderer.renderLinks(invalidStandardURLs)
-    //console.debug('standardURLs', standardURLs.length, standardURLs)
-    //console.debug('validStandardURLs', validStandardURLs.length, validStandardURLs)
-    //console.debug('validStandardURLContent', validStandardURLContent)
-    //console.debug('invalidStandardURLs', invalidStandardURLs.length, invalidStandardURLs)
-    //console.debug('invalidStandardURLContent', invalidStandardUinvalidStandardURLContentRLContent)
 
-    const sanitizedPastedElement = this.sanitizePastedElement(pastedElement)
-    const sanitizedPastedContent = sanitizedPastedElement.innerHTML
+    let urls
 
-    // 1. render invalid media urls
-    this.insert(invalidMediaURLContent, { first: true }).then(() => {
-      // 2. render invalid standard urls
-      this.insert(renderer.renderHeader('Pasted URLs', invalidStandardURLContent)).then(() => {
-        this.insert(invalidStandardURLContent, { disposition: 'inline' }).then(() => {
-          // 3. render valid media urls
-          this.insert(renderer.renderHeader('Embedded Media', validMediaURLContent)).then(() => {
-            this.insert(validMediaURLContent).then(() => {
-              // 4. render valid standard urls
-              this.insert(validStandardURLContent).then(() => {
-                // 5. render the pasted content as sanitized HTML
-                this.insert(renderer.renderHeader('Pasted Content', sanitizedPastedContent)).then(() => {
-                  this.editor.insertLineBreak()
-                  this.insert(sanitizedPastedContent, { disposition: 'inline' })
-                })
-              })
-            })
-          })
-        })
-      })
-    })
+    // 1. render invalid media urls ..........................................................................
+    urls = invalidMediaURLs
+    if (urls.length) await this.insert(renderer.renderInvalid(urls))
+
+    // 2. render invalid standard urls .......................................................................
+    urls = invalidStandardURLs
+    if (urls.length) {
+      await this.insert(renderer.renderHeader('Pasted URLs'))
+      await this.insert(renderer.renderLinks(urls), { disposition: 'inline' })
+    }
+
+    // 3. render valid media urls ............................................................................
+    urls = validMediaURLs
+    if (urls.length) {
+      if (urls.length > 1) await this.insert(renderer.renderHeader('Embedded Media'))
+      await this.insert(renderer.renderValid(urls))
+    }
+
+    // 4. render valid standard urls .........................................................................
+    urls = validStandardURLs
+    if (urls.length) await this.insert(renderer.renderValid(validStandardURLs))
+
+    // exit early if there is only one valid URL and it is the same as the pasted content
+    if (pastedURLs.length === 1 || validMediaURLs[0] === sanitizedPastedContent) return
+    if (pastedURLs.length === 1 || validStandardURLs[0] === sanitizedPastedContent) return
+
+    // 5. render the pasted content as sanitized HTML ........................................................
+    if (sanitizedPastedContent.length) {
+      await this.insert(renderer.renderHeader('Pasted Content', sanitizedPastedContent))
+      this.editor.insertLineBreak()
+      this.insert(sanitizedPastedContent, { disposition: 'inline' })
+    }
   }
 
   buildPastedTemplate(content) {
@@ -132,14 +129,12 @@ export default class extends Controller {
     })
   }
 
-  insert(content, options = { delay: 0, disposition: 'attachment', first: false }) {
-    const { delay, disposition, first } = options
+  insert(content, options = { delay: 0, disposition: 'attachment' }) {
+    const { delay, disposition } = options
 
     if (content?.length) {
       return new Promise(resolve => {
         setTimeout(() => {
-          if (first) this.editor.deleteInDirection('backward')
-
           if (typeof content === 'string') {
             if (disposition === 'inline') return this.insertHTML(content, { delay }).then(resolve)
             else return this.insertAttachment(content, { delay }).then(resolve)
