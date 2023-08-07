@@ -15,7 +15,7 @@ async function generateKey() {
 // Exports an encryption key
 //
 // @param {CryptoKey} key - The key to export
-// @returns {String} - The exported key as a string
+// @returns {String} - The exported key as a JSON string
 //
 async function exportKey(key) {
   const exported = await crypto.subtle.exportKey('jwk', key)
@@ -72,28 +72,39 @@ async function decrypt(encrypted, key) {
   return new TextDecoder().decode(buffer)
 }
 
-// Generates and logs a new encryption key
-//
-// @returns {void}
-//
-export function generateAndLogEncryptionKey() {
-  generateKey()
-    .then(key => exportKey(key))
-    .then(key => console.log(btoa(key)))
+// Generates a new encryption key
+export async function generateEncryptionKey() {
+  const key = await generateKey()
+  const jsonKey = await exportKey(key)
+  const base64Key = btoa(jsonKey)
+  console.log({ key: base64Key })
+  return { key, base64Key }
 }
 
 // Encrypts and logs a list of values
 //
-// @param {String} key - The Base64 encoded encryption key to use
-// @param {String[]} values - The clear text values to encrypt
-// @returns {void}
+// @param {String} base64Key - The encryption key to use
+// @param {Array} values - The values to encrypt
+// @returns {Promise<Object>[]} - The encrypted values
 //
-export function encryptAndLogValues(key, values = []) {
-  importKey(atob(key)).then(key => {
-    values.forEach(value =>
-      encrypt(value, key).then(encrypted =>
-        decrypt(encrypted, key).then(decrypted => console.log({ input: value, encrypted, decrypted }))
-      )
-    )
+export async function encryptValues(base64Key, values = []) {
+  const key = await importKey(atob(base64Key))
+  const encryptedValues = values.map(async value => {
+    const encrypted = await encrypt(value, key)
+    const data = { value, encrypted }
+    console.log(data)
+    return data
   })
+  return encryptedValues
+}
+
+// Generates a new encryption key and encrypts a list of values
+//
+// @param {Array} values - The values to encrypt
+// @returns {Promise<Object>} - The encryption key and encrypted values
+//
+export async function generateEncryptionKeyAndEncryptValues(values = []) {
+  const keyData = await generateEncryptionKey()
+  const encryptedValues = await encryptValues(keyData.base64Key, values)
+  return { keyData, encryptedValues }
 }

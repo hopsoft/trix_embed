@@ -22,9 +22,25 @@ export default class extends Controller {
 
   disconnect() {
     this.forgetEncryptionKey()
+    this.remove()
 
-    // prevent this controller from being reconnected
-    //this.closest('form').removeEventListener('submit', this.submitListener)
+    // 3. add a dom mutation event listener to the form that
+    //    - prevents the addition of new trix editor elements to the form
+    //    - prevent the addition of new input or textarea elements to the form that have the same name or id as this.element
+
+    // Create a new MutationObserver
+    const observer = new MutationObserver((mutationsList, observer) => {
+      for (const mutation of mutationsList) {
+        // Handle the mutation here
+        console.log('Mutation detected:', mutation)
+      }
+    })
+
+    // Configuration for the observer (specify what changes to watch for)
+    const config = { attributes: true, childList: true, subtree: true }
+
+    // Start observing the target element
+    observer.observe(targetElement, config)
   }
 
   paste(event) {
@@ -164,8 +180,46 @@ export default class extends Controller {
     return Promise.resolve()
   }
 
+  remove() {
+    this.inputElement?.remove()
+    this.toolbarElement?.remove()
+    this.element.remove()
+  }
+
+  preventConnect() {
+    const observer = new MutationObserver((mutations, observer) => {
+      mutations.forEach(mutation => {
+        console.log('Mutation detected:', mutation)
+      })
+    })
+
+    const config = { attributes: true, childList: true, subtree: true }
+    observer.observe(targetElement, config)
+  }
+
+  // Returns the Trix editor
+  //
+  // @returns {TrixEditor}
+  //
   get editor() {
     return this.element.editor
+  }
+
+  // Returns the Trix toolbar element
+  //
+  // @returns {HTMLElement}
+  //
+  get toolbarElement() {
+    const sibling = this.element.previousElementSibling
+    return siibling?.tagName.match(/trix-toolbar/i) ? sibling : null
+  }
+
+  // Returns the input element associated with the Trix editor
+  //
+  // @returns {HTMLElement}
+  //
+  get inputElement() {
+    return document.getElementById(this.element.getAttribute('input'))
   }
 
   // =========================================================================================================
@@ -184,6 +238,8 @@ export default class extends Controller {
     if (!this.hasHostsKeyValue) return
     sessionStorage.setItem(this.storageKey, this.hostsKeyValue)
     this.element.removeAttribute('data-trix-embed-hosts-key-value')
+    this.element.removeAttribute('data-trix-embed-hosts-list-value')
+    //this.element.removeAttribute('data-trix-embed-hosts-value')
   }
 
   forgetEncryptionKey() {
