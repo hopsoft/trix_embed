@@ -58,6 +58,7 @@ export default class Renderer {
     return `<ul>${links.join('')}</ul><br>`
   }
 
+  // TOOO: add support for audio and video
   // Renders a URL as an HTML embed i.e. an iframe or media tag (img, video, audio etc.)
   //
   // @param {String} url - URL
@@ -66,7 +67,6 @@ export default class Renderer {
   renderEmbed(url = 'https://example.com') {
     let embed
 
-    // TOOO: add support for audio and video
     if (isImage(url)) {
       embed = this.imageTemplate.content.firstElementChild.cloneNode(true)
       const img = embed.tagName.match(/img/i) ? embed : embed.querySelector('img')
