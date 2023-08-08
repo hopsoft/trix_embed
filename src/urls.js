@@ -10,7 +10,7 @@ export function createURL(value, callback = url => {}) {
     if (callback) callback(url)
     return url
   } catch (_error) {
-    console.info('trix-embed', `Failed to parse URL! value='${value}']`)
+    console.info(`Failed to parse URL! value='${value}']`)
   }
   return null
 }

@@ -1,4 +1,4 @@
-import { generateEncryptionKey, encryptValues, generateEncryptionKeyAndEncryptValues } from './encryption'
+import { generateKey, encryptValues, generateKeyAndEncryptValues } from './encryption'
 import Controller from './controller'
 
 const defaultOptions = {
@@ -12,9 +12,9 @@ function initialize(options = defaultOptions) {
 
 self.TrixEmbed = {
   initialize,
-  generateEncryptionKey,
+  generateKey,
   encryptValues,
-  generateEncryptionKeyAndEncryptValues
+  generateKeyAndEncryptValues
 }
 
 export default self.TrixEmbed

@@ -2,8 +2,9 @@
 //import { Controller } from '@hotwired/stimulus'
 import { extractURLsFromElement, validateURL } from './urls'
 import { getMediaType, mediaTags } from './media'
+import Guard from './guard'
+import Store from './store'
 import Renderer from './renderer'
-import { lockDown } from './security'
 
 // imports for developing and testing with test/index.html
 import { Controller } from 'https://unpkg.com/@hotwired/stimulus@3.2.1/dist/stimulus.js'
@@ -11,20 +12,27 @@ import { Controller } from 'https://unpkg.com/@hotwired/stimulus@3.2.1/dist/stim
 export default class extends Controller {
   static values = {
     hosts: Array, // list of hosts/domains that embeds are allowed from
-    hostsKey: String, // encryption key used to encrypt/decrypt allowed hosts
-    hostsList: Array, // list of encrypted hosts/domains that embeds are allowed from
-    paranoid: Boolean, // lock down the form when this controller is disconnected
+
+    // templates
     validTemplate: String, // dom id of template to use for valid embeds
-    invalidTemplate: String // dom id of template to use for invalid embeds
+    invalidTemplate: String, // dom id of template to use for invalid embeds
+
+    // security related values
+    key: String, // encryption key used to encrypt/decrypt allowed hosts
+    list: Array, // list of encrypted hosts/domains that embeds are allowed from
+    paranoid: Boolean // lock down the form when this controller is disconnected
   }
 
   connect() {
-    this.rememberEncryptionKey()
+    this.store = new Store(this)
+    this.guard = new Guard(this)
+    this.rememberConfig()
+    if (this.paranoid) this.guard.protect()
   }
 
   disconnect() {
-    this.forgetEncryptionKey()
-    if (this.paranoidValue) lockDown(this)
+    if (this.paranoid) this.guard.cleanup()
+    this.forgetConfig()
   }
 
   async paste(event) {
@@ -159,17 +167,6 @@ export default class extends Controller {
     return Promise.resolve()
   }
 
-  preventConnect() {
-    const observer = new MutationObserver((mutations, observer) => {
-      mutations.forEach(mutation => {
-        console.log('Mutation detected:', mutation)
-      })
-    })
-
-    const config = { attributes: true, childList: true, subtree: true }
-    observer.observe(targetElement, config)
-  }
-
   // Returns the Trix editor
   //
   // @returns {TrixEditor}
@@ -180,7 +177,7 @@ export default class extends Controller {
 
   get toolbarElement() {
     const sibling = this.element.previousElementSibling
-    return siibling?.tagName.match(/trix-toolbar/i) ? sibling : null
+    return sibling?.tagName.match(/trix-toolbar/i) ? sibling : null
   }
 
   get inputElement() {
@@ -191,27 +188,36 @@ export default class extends Controller {
     return this.element.closest('form')
   }
 
-  // =========================================================================================================
-  // Weak security through obscurity and indirection
-  // =========================================================================================================
-
-  get storageKey() {
-    return btoa(`hopsoft/trix_embed/${this.element.closest('[id]')?.id}`)
+  get paranoid() {
+    return this.store.read('paranoid') === 'true'
   }
 
-  get encryptionKey() {
-    return sessionStorage.getItem(this.storageKey)
+  get key() {
+    return this.store.read('key')
   }
 
-  rememberEncryptionKey() {
-    if (!this.hasHostsKeyValue) return
-    sessionStorage.setItem(this.storageKey, this.hostsKeyValue)
-    this.element.removeAttribute('data-trix-embed-hosts-key-value')
-    this.element.removeAttribute('data-trix-embed-hosts-list-value')
-    //this.element.removeAttribute('data-trix-embed-hosts-value')
+  get list() {
+    try {
+      return JSON.parse(this.store.read('list'))
+    } catch {
+      return []
+    }
   }
 
-  forgetEncryptionKey() {
-    sessionStorage.removeItem(this.storageKey)
+  rememberConfig() {
+    this.store.write('key', this.keyValue)
+    this.element.removeAttribute('data-trix-embed-key-value')
+
+    this.store.write('list', JSON.stringify(this.listValue))
+    this.element.removeAttribute('data-trix-embed-list-value')
+
+    this.store.write('paranoid', this.paranoidValue)
+    this.element.removeAttribute('data-trix-embed-paranoid')
+  }
+
+  forgetConfig() {
+    this.store.remove('key')
+    this.store.remove('list')
+    this.store.remove('paranoid')
   }
 }

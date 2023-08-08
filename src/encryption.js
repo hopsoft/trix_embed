@@ -6,7 +6,7 @@ const purposes = ['encrypt', 'decrypt']
 //
 // @returns {Promise<CryptoKey>} - The generated key
 //
-async function generateKey() {
+async function generateEncryptionKey() {
   const extractable = true // makes it possible to export the key later
   const purposes = ['encrypt', 'decrypt']
   return await crypto.subtle.generateKey(options, extractable, purposes)
@@ -76,12 +76,11 @@ async function decrypt(encrypted, key) {
 //
 // @returns {Promise<Object>} - The encryption key and base64 encoded key
 //
-export async function generateEncryptionKey() {
-  const key = await generateKey()
+export async function generateKey() {
+  const key = await generateEncryptionKey()
   const jsonKey = await exportKey(key)
   const base64Key = btoa(jsonKey)
-  console.log({ key: base64Key })
-  return { key, base64Key }
+  return base64Key
 }
 
 // Encrypts and logs a list of values
@@ -92,13 +91,7 @@ export async function generateEncryptionKey() {
 //
 export async function encryptValues(base64Key, values = []) {
   const key = await importKey(atob(base64Key))
-  const encryptedValues = values.map(async value => {
-    const encrypted = await encrypt(value, key)
-    const data = { value, encrypted }
-    console.log(data)
-    return data
-  })
-  return encryptedValues
+  return Promise.all(values.map(value => encrypt(value, key)))
 }
 
 // Generates a new encryption key and encrypts a list of values
@@ -106,8 +99,10 @@ export async function encryptValues(base64Key, values = []) {
 // @param {Array} values - The values to encrypt
 // @returns {Promise<Object>} - The encryption key and encrypted values
 //
-export async function generateEncryptionKeyAndEncryptValues(values = []) {
-  const keyData = await generateEncryptionKey()
-  const encryptedValues = await encryptValues(keyData.base64Key, values)
-  return { keyData, encryptedValues }
+export async function generateKeyAndEncryptValues(values = []) {
+  const key = await generateKey()
+  const encryptedValues = await encryptValues(key, values)
+  console.log(`data-trix-embed-key-value="${key}"`)
+  console.log(`data-trix-embed-hosts-value='${JSON.stringify(encryptedValues)}'`)
+  return { key, encryptedValues }
 }

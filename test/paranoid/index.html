@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Paranoid Demo</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.0/dist/trix.css">
+  <script type="module">
+  import 'https://unpkg.com/trix@2.0.4/dist/trix.umd.min.js'
+  import { Application } from 'https://unpkg.com/@hotwired/stimulus@3.2.1/dist/stimulus.js'
+  import TrixEmbed from '../../dist/trix-embed.js'
+
+  const application = Application.start()
+  TrixEmbed.initialize({ application })
+  </script>
+</head>
+<body>
+  <div class="container mb-5">
+    <h1 class="my-4">Paranoid Demo</h1>
+
+    <form action="/example" method="post">
+      <input id="content" name="content" type="hidden">
+      <trix-editor id="editor" input="content"
+        data-controller="trix-embed"
+        data-action="trix-paste->trix-embed#paste"
+        data-trix-embed-hosts-value='["clickfunnels.com", "voomly.com", "loom.com"]'
+        data-trix-embed-valid-template-value='trix-embed-valid'
+        xdata-trix-embed-invalid-template-value='trix-embed-invalid'
+        data-trix-embed-paranoid-value="true"
+        data-trix-embed-key-value="eyJhbGciOiJBMjU2R0NNIiwiZXh0Ijp0cnVlLCJrIjoiOTBQakNzSzBXYk5ickhqY2hDQTBwdXZyMTlBYVdQNkNIMENhSHkxUm9oSSIsImtleV9vcHMiOlsiZW5jcnlwdCIsImRlY3J5cHQiXSwia3R5Ijoib2N0In0="
+        data-trix-embed-list-value='["eyJjaXBoZXJ0ZXh0IjoidnNYaW5xSTB0Z003YUtiajljUEhlN2…VN1JhSmt5OD0iLCJpdiI6IkZVbzlTNmpNbmNzWDJUa2MifQ==", "eyJjaXBoZXJ0ZXh0IjoiVjZnUXJrd3RYVFFZeDJnZ2FtTlR5Qk…GT3hlOGIxNm89IiwiaXYiOiJqb2hBSlJNUDBLK3RhNlZ1In0=", "eyJjaXBoZXJ0ZXh0IjoiRlgxVm5uVXFEdXFET0Y2dDE3RU9Hd0dwSDZMemdBNkQiLCJpdiI6InBQZTByOVdoVUFaWDNlbEYifQ=="]'>
+      </trix-editor>
+    </form>
+
+<pre class="my-4 p-4 bg-light text-primary"><code>
+</code></pre>
+
+  </div>
+
+  <template id="trix-embed-valid">
+    <div style="border:solid 1px gainsboro; border-radius:5px; display:inline-block; padding:10px;">
+      <img style="border:solid 1px gainsboro;"></img>
+      <iframe
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture"
+        allowfullscreen
+        frameborder="0"
+        loading="lazy"
+        referrerpolicy="no-referrer"
+        scrolling="no"
+        width="854"
+        height="480"
+        style="border:solid 1px gainsboro;">
+      </iframe>
+    </div>
+  </template>
+
+  <template id="trix-embed-invalid">
+    <h1>FAIL</h1>
+  </template>
+
+</body>
+</html>

@@ -7,17 +7,18 @@ export default class Renderer {
   // @param {Controller} controller - a Stimulus Controller instance
   constructor(controller) {
     this.controller = controller
-    this.hosts = controller.hostsValue
+
+    this.hosts = this.controller.hostsValue
 
     // invalid urls template
-    if (controller.invalidTemplateValue) {
-      const template = document.getElementById(controller.invalidTemplateValue)
+    if (this.controller.invalidTemplateValue) {
+      const template = document.getElementById(this.controller.invalidTemplateValue)
       if (template) this.invalidTemplate = template
     }
 
     // valid urls template
-    if (controller.validTemplateValue) {
-      const template = document.getElementById(controller.validTemplateValue)
+    if (this.controller.validTemplateValue) {
+      const template = document.getElementById(this.controller.validTemplateValue)
       if (template) this.validTemplate = template
     }
   }
