@@ -1,7 +1,10 @@
 //import Trix from 'trix'
 //import { Controller } from '@hotwired/stimulus'
-import { extractURLs } from './urls'
-import { getMediaType } from './media'
+import { generateKey, encryptValues, decryptValues } from './encryption'
+import { extractURLsFromElement, validateURL } from './urls'
+import { getMediaType, mediaTags } from './media'
+import Guard from './guard'
+import Store from './store'
 import Renderer from './renderer'
 
 // imports for developing and testing with test/index.html
@@ -9,76 +12,96 @@ import { Controller } from 'https://unpkg.com/@hotwired/stimulus@3.2.1/dist/stim
 
 export default class extends Controller {
   static values = {
-    hosts: Array, // list of hosts/domains that embeds are allowed from
-    template: String, // dom id of the default template to use for embeds regardless of validity
+    // templates
     validTemplate: String, // dom id of template to use for valid embeds
-    invalidTemplate: String // dom id of template to use for invalid embeds
+    errorTemplate: String, // dom id of template to use for invalid embeds
+    headerTemplate: String, // dom id of template to use for embed headers
+    iframeTemplate: String, // dom id of template to use for iframe embeds
+    imageTemplate: String, // dom id of template to use for image embeds
+
+    // security related values
+    hosts: Array, // list of hosts/domains that embeds are allowed from
+    paranoid: { type: Boolean, default: true } // guard against attacks
   }
 
-  connect() {
-    this.setupWeakSecurity()
+  async connect() {
+    this.store = new Store(this)
+    this.guard = new Guard(this)
+    await this.rememberConfig()
+    if (this.paranoid) this.guard.protect()
+    this.toolbarElement.querySelector('[data-trix-button-group="file-tools"]')?.remove()
+    window.addEventListener('beforeunload', () => this.disconnect()) // TODO: this may not be necessary
   }
 
-  paste(event) {
+  disconnect() {
+    if (this.paranoid) this.guard.cleanup()
+    this.forgetConfig()
+  }
+
+  async paste(event) {
     const { html, string, range } = event.paste
     let content = html || string || ''
     const pastedTemplate = this.buildPastedTemplate(content)
-    const pastedURLs = extractURLs(pastedTemplate.content.firstElementChild)
+    const pastedElement = pastedTemplate.content.firstElementChild
+    const sanitizedPastedElement = this.sanitizePastedElement(pastedElement)
+    const sanitizedPastedContent = sanitizedPastedElement.innerHTML.trim()
+    const pastedURLs = extractURLsFromElement(pastedElement)
 
-    if (!pastedURLs.length) return // let Trix handle it
+    // no URLs were pasted, let Trix handle it ...............................................................
+    if (!pastedURLs.length) return
 
-    // Media URLs
+    event.preventDefault()
+    this.editor.setSelectedRange(range)
+    const hosts = await this.hosts
+    const renderer = new Renderer(this)
+
+    // Media URLs (images, videos, audio etc.)
     const mediaURLs = pastedURLs.filter(url => getMediaType(url))
     Array.from(pastedTemplate.content.firstElementChild.querySelectorAll('iframe')).forEach(frame => {
       if (!mediaURLs.includes(frame.src)) mediaURLs.push(frame.src)
     })
-    const validMediaURLs = mediaURLs.filter(url => this.validateURL(url))
+    const validMediaURLs = mediaURLs.filter(url => validateURL(url, hosts))
     const invalidMediaURLs = mediaURLs.filter(url => !validMediaURLs.includes(url))
 
-    // Standard URLs
+    // Standard URLs (non-media resources i.e. web pages etc.)
     const standardURLs = pastedURLs.filter(url => !mediaURLs.includes(url))
-    const validStandardURLs = standardURLs.filter(url => this.validateURL(url))
+    const validStandardURLs = standardURLs.filter(url => validateURL(url, hosts))
     const invalidStandardURLs = standardURLs.filter(url => !validStandardURLs.includes(url))
 
-    const renderer = new Renderer(this)
+    let urls
 
-    // a single solitary URL was pasted .......................................................................
-    if (pastedURLs.length === 1) {
-      if (this.validateURL(pastedURLs[0])) {
-        this.attachContent(renderer.renderValid(pastedURLs[0]))
-        return setTimeout(() => this.removePastedContent(range))
-      }
+    // 1. render invalid media urls ..........................................................................
+    urls = invalidMediaURLs
+    if (urls.length) await this.insert(renderer.renderErrors(urls))
+
+    // 2. render invalid standard urls .......................................................................
+    urls = invalidStandardURLs
+    if (urls.length) {
+      await this.insert(renderer.renderHeader('Pasted URLs'))
+      await this.insert(renderer.renderLinks(urls), { disposition: 'inline' })
     }
 
-    // we only have valid media urls
-    if (mediaURLs.length && mediaURLs.length === validMediaURLs.length && !standardURLs.length) return // let Trix handle it
-
-    // no media urls, and we have standard urls that are not valid
-    if (!mediaURLs.length && standardURLs.length && !validStandardURLs.length) return // let Trix handle it
-
-    // no valid URLs .........................................................................................
-    if (!validMediaURLs.length) {
-      if (invalidMediaURLs.length) this.attachContent(renderer.renderInvalid(invalidMediaURLs.sort()))
-      if (standardURLs.length) this.attachContent(renderer.render(standardURLs.sort()))
-      return setTimeout(() => this.removePastedContent(range))
+    // 3. render valid media urls ............................................................................
+    urls = validMediaURLs
+    if (urls.length) {
+      if (urls.length > 1) await this.insert(renderer.renderHeader('Embedded Media'))
+      await this.insert(renderer.renderEmbeds(urls))
     }
 
-    // at least one valid URL ................................................................................
+    // 4. render valid standard urls .........................................................................
+    urls = validStandardURLs
+    if (urls.length) await this.insert(renderer.renderEmbeds(validStandardURLs))
 
-    // render valid media URLs
-    if (validMediaURLs.length) validMediaURLs.forEach(url => this.attachContent(renderer.renderValid(url)))
+    // exit early if there is only one valid URL and it is the same as the pasted content
+    if (pastedURLs.length === 1 || validMediaURLs[0] === sanitizedPastedContent) return
+    if (pastedURLs.length === 1 || validStandardURLs[0] === sanitizedPastedContent) return
 
-    // render valid standard URLs
-    if (validStandardURLs.length)
-      validStandardURLs.forEach(url => this.attachContent(renderer.renderValid(url)))
-
-    // render invalid standard URLs (default template)
-    if (invalidStandardURLs.length) this.attachContent(renderer.render(invalidStandardURLs.sort()))
-
-    // render invalid media URLs
-    if (invalidMediaURLs.length) this.attachContent(renderer.renderInvalid(invalidMediaURLs.sort()))
-
-    setTimeout(() => this.removePastedContent(range))
+    // 5. render the pasted content as sanitized HTML ........................................................
+    if (sanitizedPastedContent.length) {
+      await this.insert(renderer.renderHeader('Pasted Content', sanitizedPastedContent))
+      this.editor.insertLineBreak()
+      this.insert(sanitizedPastedContent, { disposition: 'inline' })
+    }
   }
 
   buildPastedTemplate(content) {
@@ -87,47 +110,130 @@ export default class extends Controller {
     return template
   }
 
-  removePastedContent(range) {
-    this.editor.setSelectedRange(range)
-    this.editor.deleteInDirection('backward')
-    this.editor.moveCursorInDirection('forward')
+  sanitizePastedElement(element) {
+    element = element.cloneNode(true)
+    element.querySelectorAll(mediaTags.join(', ')).forEach(tag => tag.remove())
+    return element
   }
 
-  validateURL(value) {
-    const url = new URL(value)
-    return !!this.hostsValue.find(host => url.host.includes(host))
+  insertAttachment(content, options = { delay: 0 }) {
+    const { delay } = options
+    return new Promise(resolve => {
+      setTimeout(() => {
+        const attachment = new Trix.Attachment({ content, contentType: 'application/vnd.trix-embed.html' })
+        this.editor.insertAttachment(attachment)
+        resolve()
+      }, delay)
+    })
   }
 
-  attachContent(content) {
-    const attachment = new Trix.Attachment({ content })
-    this.editor.insertAttachment(attachment)
+  insertHTML(content, options = { delay: 0 }) {
+    const { delay } = options
+    return new Promise(resolve => {
+      setTimeout(() => {
+        this.editor.insertHTML(content)
+        // shenanigans to ensure that Trix considers this block of content closed
+        this.editor.moveCursorInDirection('forward')
+        this.editor.insertLineBreak()
+        this.editor.moveCursorInDirection('backward')
+        resolve()
+      }, delay)
+    })
   }
 
+  insert(content, options = { delay: 0, disposition: 'attachment' }) {
+    const { delay, disposition } = options
+
+    if (content?.length) {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          if (typeof content === 'string') {
+            if (disposition === 'inline') return this.insertHTML(content, { delay }).then(resolve)
+            else return this.insertAttachment(content, { delay }).then(resolve)
+          }
+
+          if (Array.isArray(content)) {
+            if (disposition === 'inline')
+              return content
+                .reduce((p, c, i) => p.then(this.insertHTML(c, { delay })), Promise.resolve())
+                .then(resolve)
+            else
+              return content
+                .reduce((p, c, i) => p.then(this.insertAttachment(c, { delay })), Promise.resolve())
+                .then(resolve)
+          }
+
+          resolve()
+        })
+      })
+    }
+
+    return Promise.resolve()
+  }
+
+  // Returns the Trix editor
+  //
+  // @returns {TrixEditor}
+  //
   get editor() {
     return this.element.editor
   }
 
-  // =========================================================================================================
-  // Weak security through obscurity and indirection
-  // =========================================================================================================
-
-  setupWeakSecurity() {
-    const idElement = this.element.closest('[id]')
-    const id = idElement ? idElement.id : ''
-
-    this.hostsKey = `trix-embed-hosts-${id}`
-
-    if (this.rememberedHosts) this.hostsValue = this.rememberedHosts
-    this.rememberHosts()
+  get toolbarElement() {
+    const sibling = this.element.previousElementSibling
+    return sibling?.tagName.match(/trix-toolbar/i) ? sibling : null
   }
 
-  rememberHosts() {
-    sessionStorage.setItem(this.hostsKey, JSON.stringify(this.hostsValue))
+  get inputElement() {
+    return document.getElementById(this.element.getAttribute('input'))
   }
 
-  get rememberedHosts() {
-    const json = sessionStorage.getItem(this.hostsKey)
-    if (!json) return null
-    return JSON.parse(json)
+  get formElement() {
+    return this.element.closest('form')
+  }
+
+  get paranoid() {
+    return !!this.store.read('paranoid')
+  }
+
+  get key() {
+    try {
+      return JSON.parse(this.store.read('key'))[2]
+    } catch {}
+  }
+
+  get hosts() {
+    try {
+      return decryptValues(this.key, JSON.parse(this.store.read('hosts')))
+    } catch {
+      return []
+    }
+  }
+
+  get reservedDomains() {
+    return ['example.com', 'test.com', 'invalid.com', 'example.cat', 'nic.example', 'example.co.uk']
+  }
+
+  async rememberConfig() {
+    const key = await generateKey()
+    const fakes = await encryptValues(key, this.reservedDomains)
+    const hosts = await encryptValues(key, this.hostsValue)
+
+    this.store.write('key', JSON.stringify([fakes[0], fakes[1], key, fakes[2]]))
+    this.element.removeAttribute('data-trix-embed-key-value')
+
+    this.store.write('hosts', JSON.stringify(hosts))
+    this.element.removeAttribute('data-trix-embed-hosts-value')
+
+    if (this.paranoidValue !== false) {
+      this.store.write('paranoid', JSON.stringify(fakes.slice(3)))
+      this.element.removeAttribute('data-trix-embed-paranoid')
+    }
+  }
+
+  forgetConfig() {
+    this.store.remove('key')
+    this.store.remove('hosts')
+    this.store.remove('paranoid')
   }
 }

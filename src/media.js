@@ -1,3 +1,5 @@
+import { createURL } from './urls'
+
 const audioMediaTypes = {
   mp3: 'audio/mpeg', // MP3 audio format
   ogg: 'audio/ogg', // OGG audio format
@@ -74,16 +76,27 @@ const tagsWithSrcAttribute = [
 
 export const mediaTags = tagsWithHrefAttribute.concat(tagsWithSrcAttribute)
 
-export function getMediaType(url) {
-  try {
-    url = new URL(url)
+export function isAudio(url) {
+  return !!Object.values(audioMediaTypes).find(t => t === getMediaType(url))
+}
 
-    const index = url.pathname.lastIndexOf('.')
-    if (!index) return null
+export function isImage(url) {
+  return !!Object.values(imageMediaTypes).find(t => t === getMediaType(url))
+}
 
-    const extension = url.pathname.substring(index + 1)
-    return mediaTypes[extension]
-  } catch (error) {
-    console.error('Failed to detect media type!', url, error)
-  }
+export function isVideo(url) {
+  return !!Object.values(videoMediaTypes).find(t => t === getMediaType(url))
+}
+
+export function getMediaType(value) {
+  let url
+
+  createURL(value, u => (url = u))
+  if (!url) return null
+
+  const index = url.pathname.lastIndexOf('.')
+  if (!index) return null
+
+  const extension = url.pathname.substring(index + 1)
+  return mediaTypes[extension]
 }

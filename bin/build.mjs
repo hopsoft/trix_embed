@@ -10,7 +10,7 @@ const context = await esbuild.context({
   metafile: true,
   minify: true,
   outfile: 'dist/trix-embed.js',
-  sourcemap: true,
+  sourcemap: false,
   target: ['chrome79', 'edge44', 'es2020', 'firefox71', 'opera65', 'safari13']
 })
 
