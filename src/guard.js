@@ -1,6 +1,7 @@
 export default class Guard {
   constructor(controller) {
     this.controller = controller
+    controller.element.addEventListener('trix-file-accept', event => event.preventDefault())
   }
 
   protect() {

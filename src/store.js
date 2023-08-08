@@ -1,11 +1,18 @@
 export default class Store {
   constructor(controller) {
     this.controller = controller
+    this.base = this.obfuscate([location.pathname, this.controller.element.closest('[id]')?.id].join('/'))
+  }
 
-    this.base = [...[location.pathname, this.controller.element.closest('[id]')?.id].join('/')]
-      .map(char => char.charCodeAt(0))
-      .reverse()
-      .join('')
+  split(list) {
+    const index = Math.ceil(list.length / 2)
+    return [list.slice(0, index), list.slice(index)]
+  }
+
+  obfuscate(value) {
+    const chars = [...value].map(char => char.charCodeAt(0))
+    const parts = this.split(chars)
+    return [parts[1]?.reverse(), chars[0]].flat().join('')
   }
 
   read(key) {
@@ -21,10 +28,8 @@ export default class Store {
   }
 
   generateStorageKey(value) {
-    const chars = [...value].map(char => char.charCodeAt(0))
-    const index = Math.ceil(chars.length / 2)
-    const prefix = chars.slice(0, index).join('')
-    const suffix = chars.slice(index).join('')
+    const chars = [...this.obfuscate(value)]
+    const [prefix, suffix] = this.split(chars)
     return btoa(`${prefix}/${this.base}/${suffix}`)
   }
 }

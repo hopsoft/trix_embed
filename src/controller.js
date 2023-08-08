@@ -1,5 +1,6 @@
 //import Trix from 'trix'
 //import { Controller } from '@hotwired/stimulus'
+import { generateKey, encryptValues, decryptValues } from './encryption'
 import { extractURLsFromElement, validateURL } from './urls'
 import { getMediaType, mediaTags } from './media'
 import Guard from './guard'
@@ -11,22 +12,19 @@ import { Controller } from 'https://unpkg.com/@hotwired/stimulus@3.2.1/dist/stim
 
 export default class extends Controller {
   static values = {
-    hosts: Array, // list of hosts/domains that embeds are allowed from
-
     // templates
     validTemplate: String, // dom id of template to use for valid embeds
     invalidTemplate: String, // dom id of template to use for invalid embeds
 
     // security related values
-    key: String, // encryption key used to encrypt/decrypt allowed hosts
-    list: Array, // list of encrypted hosts/domains that embeds are allowed from
-    paranoid: Boolean // lock down the form when this controller is disconnected
+    hosts: Array, // list of hosts/domains that embeds are allowed from
+    paranoid: Boolean // guard against attacks
   }
 
-  connect() {
+  async connect() {
     this.store = new Store(this)
     this.guard = new Guard(this)
-    this.rememberConfig()
+    await this.rememberConfig()
     if (this.paranoid) this.guard.protect()
   }
 
@@ -49,6 +47,7 @@ export default class extends Controller {
 
     event.preventDefault()
     this.editor.setSelectedRange(range)
+    const hosts = await this.hosts
     const renderer = new Renderer(this)
 
     // Media URLs (images, videos, audio etc.)
@@ -56,12 +55,12 @@ export default class extends Controller {
     Array.from(pastedTemplate.content.firstElementChild.querySelectorAll('iframe')).forEach(frame => {
       if (!mediaURLs.includes(frame.src)) mediaURLs.push(frame.src)
     })
-    const validMediaURLs = mediaURLs.filter(url => validateURL(url, this.hostsValue))
+    const validMediaURLs = mediaURLs.filter(url => validateURL(url, hosts))
     const invalidMediaURLs = mediaURLs.filter(url => !validMediaURLs.includes(url))
 
     // Standard URLs (non-media resources i.e. web pages etc.)
     const standardURLs = pastedURLs.filter(url => !mediaURLs.includes(url))
-    const validStandardURLs = standardURLs.filter(url => validateURL(url, this.hostsValue))
+    const validStandardURLs = standardURLs.filter(url => validateURL(url, hosts))
     const invalidStandardURLs = standardURLs.filter(url => !validStandardURLs.includes(url))
 
     let urls
@@ -189,35 +188,47 @@ export default class extends Controller {
   }
 
   get paranoid() {
-    return this.store.read('paranoid') === 'true'
+    return true || !!this.store.read('paranoid')
   }
 
   get key() {
-    return this.store.read('key')
+    try {
+      return JSON.parse(this.store.read('key'))[2]
+    } catch {}
   }
 
-  get list() {
+  get hosts() {
     try {
-      return JSON.parse(this.store.read('list'))
+      return decryptValues(this.key, JSON.parse(this.store.read('hosts')))
     } catch {
       return []
     }
   }
 
-  rememberConfig() {
-    this.store.write('key', this.keyValue)
+  get reservedDomains() {
+    return ['example.com', 'test.com', 'invalid.com', 'example.cat', 'nic.example', 'example.co.uk']
+  }
+
+  async rememberConfig() {
+    const key = await generateKey()
+    const fakes = await encryptValues(key, this.reservedDomains)
+    const hosts = await encryptValues(key, this.hostsValue)
+
+    this.store.write('key', JSON.stringify([fakes[0], fakes[1], key, fakes[2]]))
     this.element.removeAttribute('data-trix-embed-key-value')
 
-    this.store.write('list', JSON.stringify(this.listValue))
-    this.element.removeAttribute('data-trix-embed-list-value')
+    this.store.write('hosts', JSON.stringify(hosts))
+    this.element.removeAttribute('data-trix-embed-hosts-value')
 
-    this.store.write('paranoid', this.paranoidValue)
-    this.element.removeAttribute('data-trix-embed-paranoid')
+    if (true || this.paranoidValue) {
+      this.store.write('paranoid', JSON.stringify(fakes.slice(3)))
+      this.element.removeAttribute('data-trix-embed-paranoid')
+    }
   }
 
   forgetConfig() {
     this.store.remove('key')
-    this.store.remove('list')
+    this.store.remove('hosts')
     this.store.remove('paranoid')
   }
 }

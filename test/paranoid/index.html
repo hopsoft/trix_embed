@@ -22,34 +22,38 @@
       <trix-editor id="editor" input="content"
         data-controller="trix-embed"
         data-action="trix-paste->trix-embed#paste"
-        data-trix-embed-hosts-value='["clickfunnels.com", "voomly.com", "loom.com"]'
+        data-trix-embed-hosts-value='["clickfunnels.com", "loom.com", "voomly.com"]'
+
         data-trix-embed-valid-template-value='trix-embed-valid'
         xdata-trix-embed-invalid-template-value='trix-embed-invalid'
-        data-trix-embed-paranoid-value="true"
-        data-trix-embed-key-value="eyJhbGciOiJBMjU2R0NNIiwiZXh0Ijp0cnVlLCJrIjoiOTBQakNzSzBXYk5ickhqY2hDQTBwdXZyMTlBYVdQNkNIMENhSHkxUm9oSSIsImtleV9vcHMiOlsiZW5jcnlwdCIsImRlY3J5cHQiXSwia3R5Ijoib2N0In0="
-        data-trix-embed-list-value='["eyJjaXBoZXJ0ZXh0IjoidnNYaW5xSTB0Z003YUtiajljUEhlN2…VN1JhSmt5OD0iLCJpdiI6IkZVbzlTNmpNbmNzWDJUa2MifQ==", "eyJjaXBoZXJ0ZXh0IjoiVjZnUXJrd3RYVFFZeDJnZ2FtTlR5Qk…GT3hlOGIxNm89IiwiaXYiOiJqb2hBSlJNUDBLK3RhNlZ1In0=", "eyJjaXBoZXJ0ZXh0IjoiRlgxVm5uVXFEdXFET0Y2dDE3RU9Hd0dwSDZMemdBNkQiLCJpdiI6InBQZTByOVdoVUFaWDNlbEYifQ=="]'>
+        >
       </trix-editor>
     </form>
 
-<pre class="my-4 p-4 bg-light text-primary"><code>
+<pre class="my-4 p-4 bg-light text-primary"><code>&lt;form action="/example" method="post"&gt;
+  &lt;input id="content" name="content" type="hidden"&gt;
+  &lt;trix-editor id="editor" input="content"
+    data-controller="trix-embed"
+    data-action="trix-paste-&gt;trix-embed#paste"
+    data-trix-embed-hosts-value='["clickfunnels.com", "loom.com", "voomly.com"]'&gt;
+&lt;/trix-editor&gt;
 </code></pre>
 
   </div>
 
   <template id="trix-embed-valid">
-    <div style="border:solid 1px gainsboro; border-radius:5px; display:inline-block; padding:10px;">
-      <img style="border:solid 1px gainsboro;"></img>
-      <iframe
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture"
-        allowfullscreen
-        frameborder="0"
-        loading="lazy"
-        referrerpolicy="no-referrer"
-        scrolling="no"
-        width="854"
-        height="480"
-        style="border:solid 1px gainsboro;">
-      </iframe>
+    <div>
+      <img class="figure-img img-fluid rounded"></img>
+      <div class="ratio ratio-16x9">
+        <iframe class=""
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture"
+          allowfullscreen
+          frameborder="0"
+          loading="lazy"
+          referrerpolicy="no-referrer"
+          scrolling="no">
+        </iframe>
+      </div>
     </div>
   </template>
 
