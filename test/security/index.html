@@ -15,7 +15,7 @@
 </head>
 <body>
   <div class="container mb-5">
-    <h1 class="my-4">Security Demo</h1>
+    <h1 class="my-4">🔒 Security</h1>
 
     <p class="lead">
       Trix Embed ships with a few security features to help prevent malicious and unwanted content from being embedded.
@@ -26,34 +26,31 @@
       and all security values are discarded when the controller disconnects.
     </div>
 
-    <h2>Allow List</h2>
+    <h2>🗂️ Files</h2>
+    <p>
+      Traditional file attachments by any means are disabled.
+      This includes pasting, dragging, and dropping.
+    </p>
+
+    <h2>✅ Allow List</h2>
     <p>
       Allow lists let you specify which hosts and domains can be embedded.
       The lists are encrypted and hidden making it difficult for attackers to tamper with them.
     </p>
-    <p>
-      To create an allow list, open the browser's JavaScript console <kbd>⌘ ⌥ J</kbd> or <kbd>⌘ ⌥ C</kbd>.
-      Then run the command below. <em>Be sure to replace the list with your own.</em>
-    </p>
 
-<pre class="my-4 p-4 bg-light text-primary"><code>TrixEmbed.generateKeyAndEncryptValues(['example.com', 'test.com'])
+<pre class="my-4 p-4 bg-light text-primary rounded border"><code>data-trix-embed-list-value='["example.com", "test.com"]'
 </code></pre>
 
+    <h2>😱 Paranoid</h2>
+    <div class="alert alert-primary" role="alert">
+      Paranoid mode is enabled by default.
+    </div>
     <p>
-      Next, copy the output into the corresponding attributes on your <code>&lt;trix-editor&gt;</code>.
-    </p>
-
-<pre class="my-4 p-4 bg-light text-primary"><code>data-trix-embed-key-value="KEY"
-data-trix-embed-list-value="HOSTS"
-</code></pre>
-
-    <h2>Paranoid Option</h2>
-    <p>
-      The <code>paranoid</code> options protects your forms from being tampered with.
+      The <code>paranoid</code> option protects your forms from being tampered with.
       <a href="../attacks">Read more</a> about the attack vectors this protects against.
     </p>
 
-<pre class="my-4 p-4 bg-light text-primary"><code>data-trix-embed-paranoid-value="true"
+<pre class="my-4 p-4 bg-light text-primary rounded border"><code>data-trix-embed-paranoid-value="true"
 </code></pre>
 
   </div>

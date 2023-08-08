@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Paranoid Demo</title>
+  <title>Trix Embed Demo</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.0/dist/trix.css">
   <script type="module">
@@ -15,7 +15,7 @@
 </head>
 <body>
   <div class="container mb-5">
-    <h1 class="my-4">Paranoid Demo</h1>
+    <h1 class="my-4">🚀 Demo</h1>
 
     <form action="/example" method="post">
       <input id="content" name="content" type="hidden">
@@ -23,14 +23,13 @@
         data-controller="trix-embed"
         data-action="trix-paste->trix-embed#paste"
         data-trix-embed-hosts-value='["clickfunnels.com", "loom.com", "voomly.com"]'
-
         data-trix-embed-valid-template-value='trix-embed-valid'
         xdata-trix-embed-invalid-template-value='trix-embed-invalid'
         >
       </trix-editor>
     </form>
 
-<pre class="my-4 p-4 bg-light text-primary"><code>&lt;form action="/example" method="post"&gt;
+<pre class="my-4 p-4 bg-light text-primary rounded border"><code>&lt;form action="/example" method="post"&gt;
   &lt;input id="content" name="content" type="hidden"&gt;
   &lt;trix-editor id="editor" input="content"
     data-controller="trix-embed"

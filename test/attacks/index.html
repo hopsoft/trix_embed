@@ -11,14 +11,14 @@
 
 <h3 class="mt-5">Helpers</h3><hr>
 <div class="ps-4">
-<pre class="p-2 bg-light text-primary"><code>document.querySelector('form');
+<pre class="p-2 bg-light text-primary rounded border"><code>document.querySelector('form');
 </code></pre>
 </div>
 
 <h3 class="mt-5">Remove Controller</h3><hr>
 <div class="ps-4">
 <div class="alert alert-danger" role="alert">Triggers removal of the editor and its input. They cannot be re-added after an attack.</div>
-<pre class="p-2 bg-light text-primary"><code>editor = document.querySelector('trix-editor');
+<pre class="p-2 bg-light text-primary rounded border"><code>editor = document.querySelector('trix-editor');
 editor.removeAttribute('data-controller');
 </code></pre>
 </div>
@@ -27,7 +27,7 @@ editor.removeAttribute('data-controller');
 <div class="ps-4">
 <h4>Same <code>id</code> or <code>name</code></h4>
 <div class="alert alert-danger" role="alert">Triggers removal of the input. It cannot be re-added after an attack.</div>
-<pre class="p-2 bg-light text-primary"><code>form = document.querySelector('form');
+<pre class="p-2 bg-light text-primary rounded border"><code>form = document.querySelector('form');
 input = form.querySelector('input[name="content"]');
 evil = document.createElement('input');
 evil.value = 'EVIL';
@@ -40,7 +40,7 @@ form.replaceChild(evil, input);
 <h3 class="mt-5">Add Form</h3><hr>
 <div class="ps-4">
 <div class="alert alert-danger" role="alert">Blocks adding forms with the same action.</div>
-<pre class="p-2 bg-light text-primary"><code>evil = document.createElement('form');
+<pre class="p-2 bg-light text-primary rounded border"><code>evil = document.createElement('form');
 evil.action = '/example';
 evil.innerHTML = '&lt;input name="content" value="EVIL"&gt;';
 document.body.appendChild(evil);
@@ -50,7 +50,7 @@ document.body.appendChild(evil);
 <h3 class="mt-5">Replace Form</h3><hr>
 <div class="ps-4">
 <div class="alert alert-danger" role="alert">Triggers removal of the form. It cannot be re-added after an attack.</div>
-<pre class="p-2 bg-light text-primary"><code>form = document.querySelector('form');
+<pre class="p-2 bg-light text-primary rounded border"><code>form = document.querySelector('form');
 evil = form.cloneNode(true);
 evil.innerHTML = '&lt;input name="content" value="EVIL"&gt;';
 document.body.appendChild(form);
@@ -61,11 +61,11 @@ document.body.appendChild(form);
 <div class="ps-4">
 <h4>Clearing</h4>
 <div class="alert alert-danger" role="alert">Removes all references to the encryption key and allow list and prevents embeds from all hosts.</div>
-<pre class="p-2 bg-light text-primary"><code>sessionStorage.clear();
+<pre class="p-2 bg-light text-primary rounded border"><code>sessionStorage.clear();
 </code></pre>
 <h4>Tampering</h4>
 <div class="alert alert-danger" role="alert">Prevents decryption and prevents embeds from all hosts.</div>
-<pre class="p-2 bg-light text-primary"><code>...
+<pre class="p-2 bg-light text-primary rounded border"><code>...
 </code></pre>
 </div>
 
