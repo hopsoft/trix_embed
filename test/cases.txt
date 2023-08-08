@@ -1,0 +1,61 @@
+// ===========================================================================================================
+// allowed media tags (iframes)
+// ===========================================================================================================
+
+<iframe src="https://embed.voomly.com/embed/assets/embed.html?videoId=gxuzVuSL0DzNMAxLmFWMg9PbCzGzG2kvXzGZETIAHX6rLDYoa&videoRatio=1.777778&type=v" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen width="560" height="314"></iframe>
+
+<div style="position: relative; padding-bottom: 64.5933014354067%; height: 0;"><iframe src="https://www.loom.com/embed/fda3bb23e96f488da89308a59cb14468?sid=6af81d3c-7736-4a97-8e2a-61f025a77edf" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+
+
+
+
+// ===========================================================================================================
+// allowed media urls (iframes)
+// ===========================================================================================================
+
+https://embed.voomly.com/embed/assets/embed.html?videoId=gxuzVuSL0DzNMAxLmFWMg9PbCzGzG2kvXzGZETIAHX6rLDYoa&videoRatio=1.777778&type=v
+https://www.loom.com/embed/fda3bb23e96f488da89308a59cb14468?sid=6af81d3c-7736-4a97-8e2a-61f025a77edf
+https://www.loom.com/share/fda3bb23e96f488da89308a59cb14468
+
+
+
+
+// ===========================================================================================================
+// allowed media tags (images)
+// ===========================================================================================================
+
+<img class="elImage" src="https://statics.myclickfunnels.com/image/18323/file/6878b605c266ff9e27a89ea5d0e7ce01.svg" alt="Click Funnels 2.0 Logo, Homepage" data-element-link="/" width="225" tabindex="0">
+
+
+
+
+// ===========================================================================================================
+// allowed media urls (images)
+// ===========================================================================================================
+
+https://images.clickfunnels.com/cdn-cgi/image/width=550,fit=scale-down,f=auto,q=95/https://statics.myclickfunnels.com/image/254994/file/f959f72a0d2e07184e423fa87d9c3e61.png
+
+
+
+// ===========================================================================================================
+// prohibited media (tags & urls)
+// ===========================================================================================================
+
+
+<img src="https://media.cnn.com/api/v1/images/stellar/prod/230803134820-will-smith-men-in-black.jpg?c=16x9&q=h_438,w_780,c_fill" alt="will smith men in black" class="image__dam-img" onload="this.classList.remove('image__dam-img--loading')" onerror="imageLoadError(this)" height="1628" width="3000" loading="lazy" pinger-seen="true">
+
+<img class="homepage-hero-branding-rollout__media-image--desktop" alt="View of a HubSpot user's weekly email, calling, and meeting activity, a contact record, and a customer service report in their HubSpot CRM platform" src="https://www.hubspot.com/hubfs/EN%20Round%203%20Variant%201%20Desktop%20(2).webp">
+
+https://media.cnn.com/api/v1/images/stellar/prod/230803102331-william-barr-file.jpg?c=16x9&q=h_720,w_1280,c_fill
+https://www.hubspot.com/hubfs/EN%20Round%203%20Variant%201%20Desktop%20(2).webp
+https://hopsoft.io/@turbo-boost/commands/assets/turbo-boost-logo-dark-bg-0772356a92ac5e8189af68e8e4220b98723b93ce8ee196c2daabc47c2ee9e529.webp
+
+
+
+
+// ===========================================================================================================
+// standard urls
+// ===========================================================================================================
+
+https://www.cnn.com/
+https://www.hubspot.com/

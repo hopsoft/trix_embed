@@ -1,0 +1,3 @@
+#!/bin/bash
+
+yarn run prettier --write package.json prettier.config.js bin/build.mjs src/**/*.js

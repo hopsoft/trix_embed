@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Paranoid Test</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+</head>
+<body>
+  <div class="container mb-5">
+    <nav class="navbar bg-body-tertiary px-2">
+      <div class="d-flex text-start align-items-center">
+        <a class="navbar-brand m-1 mx-2" href="../"><b>Trix</b> <kbd>Embed</kbd></a>
+        <a class="nav-link m-1 mx-2" href="../security">Security</a>
+        <a class="nav-link m-1 mx-2 border-bottom" href="../attacks">Attack Vectors</a>
+      </div>
+    </nav>
+
+    <h1 class="pt-4 text-danger">💥 Attack Vectors</h1>
+
+    <h3 class="mt-5">Helpers</h3><hr>
+    <pre class="p-2 bg-light text-primary rounded border"><code>document.querySelector('form');
+</code></pre>
+
+    <h3 class="mt-5">Remove Controller</h3><hr>
+    <div class="alert alert-danger" role="alert">Triggers removal of the editor and its input. They cannot be re-added after an attack.</div>
+    <pre class="p-2 bg-light text-primary rounded border"><code>editor = document.querySelector('trix-editor');
+editor.removeAttribute('data-controller');
+</code></pre>
+
+    <h3 class="mt-5">Replace Input</h3><hr>
+    <h4>Same <code>id</code> or <code>name</code></h4>
+    <div class="alert alert-danger" role="alert">Triggers removal of the input. It cannot be re-added after an attack.</div>
+    <pre class="p-2 bg-light text-primary rounded border"><code>form = document.querySelector('form');
+input = form.querySelector('input[name="content"]');
+evil = document.createElement('input');
+evil.value = 'EVIL';
+evil.id ='content';
+evil.setAttribute('name', 'content');
+form.replaceChild(evil, input);
+</code></pre>
+
+    <h3 class="mt-5">Add Form</h3><hr>
+    <div class="alert alert-danger" role="alert">Blocks adding forms with the same action.</div>
+    <pre class="p-2 bg-light text-primary rounded border"><code>evil = document.createElement('form');
+evil.action = '/example';
+evil.innerHTML = '&lt;input name="content" value="EVIL"&gt;';
+document.body.appendChild(evil);
+</code></pre>
+
+    <h3 class="mt-5">Replace Form</h3><hr>
+    <div class="alert alert-danger" role="alert">Triggers removal of the form. It cannot be re-added after an attack.</div>
+    <pre class="p-2 bg-light text-primary rounded border"><code>form = document.querySelector('form');
+evil = form.cloneNode(true);
+evil.innerHTML = '&lt;input name="content" value="EVIL"&gt;';
+document.body.appendChild(form);
+</code></pre>
+
+    <h3 class="mt-5">Session Storage</h3><hr>
+    <h4>Clearing</h4>
+    <div class="alert alert-danger" role="alert">Removes all references to the encryption key and allow list and prevents embeds from all hosts.</div>
+    <pre class="p-2 bg-light text-primary rounded border"><code>sessionStorage.clear();
+    </code></pre>
+    <h4>Tampering</h4>
+    <div class="alert alert-danger" role="alert">Prevents decryption and prevents embeds from all hosts.</div>
+    <pre class="p-2 bg-light text-primary rounded border"><code>...
+</code></pre>
+  </div>
+</body>
+</html>
