@@ -74,6 +74,18 @@ const tagsWithSrcAttribute = [
 
 export const mediaTags = tagsWithHrefAttribute.concat(tagsWithSrcAttribute)
 
+export function isAudio(url) {
+  return !!audioMediaTypes[getMediaType(url)]
+}
+
+export function isImage(url) {
+  return !!imageMediaTypes[getMediaType(url)]
+}
+
+export function isVideo(url) {
+  return !!videoMediaTypes[getMediaType(url)]
+}
+
 export function getMediaType(url) {
   try {
     url = new URL(url)

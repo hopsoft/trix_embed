@@ -34,9 +34,11 @@
       <trix-editor id="editor" input="content"
         data-controller="trix-embed"
         data-action="trix-paste->trix-embed#paste"
-        data-trix-embed-hosts-value='["clickfunnels.com", "loom.com", "voomly.com"]'
-        xdata-trix-embed-valid-template-value='trix-embed-valid'
-        xdata-trix-embed-invalid-template-value='trix-embed-invalid'
+        data-trix-embed-hosts-value='["clickfunnels.com", "loom.com", "voomly.com", "tonyrobbins.com"]'
+        data-trix-embed-header-template-value='header-template'
+        data-trix-embed-iframe-template-value='iframe-template'
+        data-trix-embed-image-template-value='image-template'
+        xdata-trix-embed-error-template-value='error-template'
         xdata-trix-embed-paranoid-value="false"
         >
       </trix-editor>
@@ -53,23 +55,32 @@
 
   </div>
 
-  <template id="trix-embed-valid">
-    <div>
-      <img class="figure-img img-fluid rounded"></img>
-      <div class="ratio ratio-16x9">
-        <iframe class=""
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture"
-          allowfullscreen
-          frameborder="0"
-          loading="lazy"
-          referrerpolicy="no-referrer"
-          scrolling="no">
-        </iframe>
-      </div>
+  <template id="header-template">
+    <div class="alert alert-primary" role="alert"><h1></h1></div>
+  </template>
+
+  <template id="iframe-template">
+    <div class="p-1 border rounded-2">
+      <code class="block">&lt;iframe&gt;</code>
+      <iframe class="ratio ratio-16x9 border rounded-1"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture"
+        allowfullscreen
+        frameborder="0"
+        loading="lazy"
+        referrerpolicy="no-referrer"
+        scrolling="no">
+      </iframe>
     </div>
   </template>
 
-  <template id="trix-embed-invalid">
+  <template id="image-template">
+    <div>
+      <code class="block">&lt;img&gt;</code>
+      <img class="img-thumbnail"></img>
+    </div>
+  </template>
+
+  <template id="error-template">
     <h1>FAIL</h1>
   </template>
 

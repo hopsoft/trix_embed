@@ -14,7 +14,10 @@ export default class extends Controller {
   static values = {
     // templates
     validTemplate: String, // dom id of template to use for valid embeds
-    invalidTemplate: String, // dom id of template to use for invalid embeds
+    errorTemplate: String, // dom id of template to use for invalid embeds
+    headerTemplate: String, // dom id of template to use for embed headers
+    iframeTemplate: String, // dom id of template to use for iframe embeds
+    imageTemplate: String, // dom id of template to use for image embeds
 
     // security related values
     hosts: Array, // list of hosts/domains that embeds are allowed from
@@ -25,7 +28,6 @@ export default class extends Controller {
     this.store = new Store(this)
     this.guard = new Guard(this)
     await this.rememberConfig()
-    console.log('connect', this.paranoidValue, this.paranoid)
     if (this.paranoid) this.guard.protect()
     this.toolbarElement.querySelector('[data-trix-button-group="file-tools"]')?.remove()
     window.addEventListener('beforeunload', () => this.disconnect()) // TODO: this may not be necessary
@@ -44,7 +46,6 @@ export default class extends Controller {
     const sanitizedPastedElement = this.sanitizePastedElement(pastedElement)
     const sanitizedPastedContent = sanitizedPastedElement.innerHTML.trim()
     const pastedURLs = extractURLsFromElement(pastedElement)
-    console.log('pastedURLs', pastedURLs, pastedElement.innerHTML)
 
     // no URLs were pasted, let Trix handle it ...............................................................
     if (!pastedURLs.length) return
@@ -71,7 +72,7 @@ export default class extends Controller {
 
     // 1. render invalid media urls ..........................................................................
     urls = invalidMediaURLs
-    if (urls.length) await this.insert(renderer.renderInvalid(urls))
+    if (urls.length) await this.insert(renderer.renderErrors(urls))
 
     // 2. render invalid standard urls .......................................................................
     urls = invalidStandardURLs
@@ -84,12 +85,12 @@ export default class extends Controller {
     urls = validMediaURLs
     if (urls.length) {
       if (urls.length > 1) await this.insert(renderer.renderHeader('Embedded Media'))
-      await this.insert(renderer.renderValid(urls))
+      await this.insert(renderer.renderEmbeds(urls))
     }
 
     // 4. render valid standard urls .........................................................................
     urls = validStandardURLs
-    if (urls.length) await this.insert(renderer.renderValid(validStandardURLs))
+    if (urls.length) await this.insert(renderer.renderEmbeds(validStandardURLs))
 
     // exit early if there is only one valid URL and it is the same as the pasted content
     if (pastedURLs.length === 1 || validMediaURLs[0] === sanitizedPastedContent) return
