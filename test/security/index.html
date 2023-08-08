@@ -3,18 +3,17 @@
 <head>
   <title>Security</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
-  <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.0/dist/trix.css">
-  <script type="module">
-  import 'https://unpkg.com/trix@2.0.4/dist/trix.umd.min.js'
-  import { Application } from 'https://unpkg.com/@hotwired/stimulus@3.2.1/dist/stimulus.js'
-  import TrixEmbed from '../../dist/trix-embed.js'
-
-  const application = Application.start()
-  TrixEmbed.initialize({ application })
-  </script>
 </head>
 <body>
   <div class="container mb-5">
+    <nav class="navbar bg-body-tertiary px-2">
+      <div class="d-flex text-start align-items-center">
+        <a class="navbar-brand m-1 mx-2" href="../"><b>Trix</b> <kbd>Embed</kbd></a>
+        <a class="nav-link m-1 mx-2 border-bottom" href="../security">Security</a>
+        <a class="nav-link m-1 mx-2" href="../attacks">Attack Vectors</a>
+      </div>
+    </nav>
+
     <h1 class="my-4">🔒 Security</h1>
 
     <p class="lead">
@@ -38,7 +37,7 @@
       The lists are encrypted and hidden making it difficult for attackers to tamper with them.
     </p>
 
-<pre class="my-4 p-4 bg-light text-primary rounded border"><code>data-trix-embed-list-value='["example.com", "test.com"]'
+    <pre class="my-4 p-4 bg-light text-primary rounded border"><code>data-trix-embed-list-value='["example.com", "test.com"]'
 </code></pre>
 
     <h2>😱 Paranoid</h2>
@@ -49,8 +48,11 @@
       The <code>paranoid</code> option protects your forms from being tampered with.
       <a href="../attacks">Read more</a> about the attack vectors this protects against.
     </p>
+    <p>
+      Paranoid mode can also be disabled if needed.
+    </p>
 
-<pre class="my-4 p-4 bg-light text-primary rounded border"><code>data-trix-embed-paranoid-value="true"
+    <pre class="my-4 p-4 bg-light text-primary rounded border"><code>data-trix-embed-paranoid-value="false"
 </code></pre>
 
   </div>

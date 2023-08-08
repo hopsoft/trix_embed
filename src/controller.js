@@ -18,14 +18,17 @@ export default class extends Controller {
 
     // security related values
     hosts: Array, // list of hosts/domains that embeds are allowed from
-    paranoid: Boolean // guard against attacks
+    paranoid: { type: Boolean, default: true } // guard against attacks
   }
 
   async connect() {
     this.store = new Store(this)
     this.guard = new Guard(this)
     await this.rememberConfig()
+    console.log('connect', this.paranoidValue, this.paranoid)
     if (this.paranoid) this.guard.protect()
+    this.toolbarElement.querySelector('[data-trix-button-group="file-tools"]')?.remove()
+    window.addEventListener('beforeunload', () => this.disconnect()) // TODO: this may not be necessary
   }
 
   disconnect() {
@@ -41,6 +44,7 @@ export default class extends Controller {
     const sanitizedPastedElement = this.sanitizePastedElement(pastedElement)
     const sanitizedPastedContent = sanitizedPastedElement.innerHTML.trim()
     const pastedURLs = extractURLsFromElement(pastedElement)
+    console.log('pastedURLs', pastedURLs, pastedElement.innerHTML)
 
     // no URLs were pasted, let Trix handle it ...............................................................
     if (!pastedURLs.length) return
@@ -188,7 +192,7 @@ export default class extends Controller {
   }
 
   get paranoid() {
-    return true || !!this.store.read('paranoid')
+    return !!this.store.read('paranoid')
   }
 
   get key() {
@@ -220,7 +224,7 @@ export default class extends Controller {
     this.store.write('hosts', JSON.stringify(hosts))
     this.element.removeAttribute('data-trix-embed-hosts-value')
 
-    if (true || this.paranoidValue) {
+    if (this.paranoidValue !== false) {
       this.store.write('paranoid', JSON.stringify(fakes.slice(3)))
       this.element.removeAttribute('data-trix-embed-paranoid')
     }
