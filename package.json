@@ -1,5 +1,5 @@
 {
-  "name": "trix-embeds",
+  "name": "trix-embed",
   "version": "0.0.0",
   "main": "dist/trix-embed.js",
   "license": "MIT",

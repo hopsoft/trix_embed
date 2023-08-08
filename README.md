@@ -2,6 +2,34 @@
 
 Trix Embed is a Stimulus controller that supports safely embedding content from external sources.
 
+## Setup
+
+```sh
+yarn add @hotwired/stimulus trix trix-embed
+```
+
+```js
+import 'trix'
+import { Application } from '@hotwired/stimulus'
+import TrixEmbed from 'trix-embed'
+
+const application = Application.start()
+TrixEmbed.initialize({ application })
+```
+
+## Usage
+
+```html
+<form>
+  <input id="content" name="content" type="hidden">
+  <trix-editor id="editor" input="content"
+    data-controller="trix-embed"
+    data-action="trix-paste->trix-embed#paste"
+    data-trix-embed-hosts-value='["example.com", "test.com"]'>
+  </trix-editor>
+</form>
+```
+
 ## Sponsors
 
 <p align="center">
