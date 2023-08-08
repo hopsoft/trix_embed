@@ -74,7 +74,7 @@ async function decrypt(encrypted, key) {
 
 // Generates a new encryption key
 //
-// @returns {Promise<Object>} - The encryption key and base64 encoded key
+// @returns {Promise<String>} - The base64 encoded key
 //
 export async function generateKey() {
   const key = await generateEncryptionKey()
@@ -83,15 +83,26 @@ export async function generateKey() {
   return base64Key
 }
 
-// Encrypts and logs a list of values
+// Encrypts a list of values
 //
 // @param {String} base64Key - The encryption key to use
-// @param {Array} values - The values to encrypt
-// @returns {Promise<Object>[]} - The encrypted values
+// @param {String[]} values - The values to encrypt
+// @returns {Promise<String>[]} - The encrypted values
 //
 export async function encryptValues(base64Key, values = []) {
   const key = await importKey(atob(base64Key))
   return Promise.all(values.map(value => encrypt(value, key)))
+}
+
+// Decrypts and logs a list of values
+//
+// @param {String} base64Key - The encryption key to use
+// @param {String[]} values - The values to decrypt
+// @returns {Promise<String>[]} - The decrypted values
+//
+export async function decryptValues(base64Key, encryptedValues = []) {
+  const key = await importKey(atob(base64Key))
+  return Promise.all(encryptedValues.map(encryptedValue => decrypt(encryptedValue, key)))
 }
 
 // Generates a new encryption key and encrypts a list of values

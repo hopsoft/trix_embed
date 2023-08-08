@@ -9,6 +9,12 @@
 
 <h1 class="pt-4 text-danger">💥 Attack Vectors</h1>
 
+<h3 class="mt-5">Helpers</h3><hr>
+<div class="ps-4">
+<pre class="p-2 bg-light text-primary"><code>document.querySelector('form');
+</code></pre>
+</div>
+
 <h3 class="mt-5">Remove Controller</h3><hr>
 <div class="ps-4">
 <div class="alert alert-danger" role="alert">Triggers removal of the editor and its input. They cannot be re-added after an attack.</div>
@@ -51,11 +57,12 @@ document.body.appendChild(form);
 </code></pre>
 </div>
 
-<h3 class="mt-5">Helpers</h3><hr>
+<h3 class="mt-5">Session Storage</h3><hr>
 <div class="ps-4">
-<pre class="p-2 bg-light text-primary"><code>document.querySelector('form');
+<div class="alert alert-danger" role="alert">Removes all references to the encryption key and allow list and prevents embeds from all hosts.</div>
+<pre class="p-2 bg-light text-primary"><code>sessionStorage.clear();
 </code></pre>
-
 </div>
+
 </body>
 </html>
