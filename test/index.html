@@ -18,6 +18,7 @@
     <nav class="navbar bg-body-tertiary px-2">
       <div class="d-flex text-start align-items-center">
         <a class="navbar-brand m-1 mx-2" href="#"><b>Trix</b> <kbd>Embed</kbd></a>
+        <a class="nav-link m-1 mx-2 border-bottom" href="#">Demo</a>
         <a class="nav-link m-1 mx-2" href="security">Security</a>
         <a class="nav-link m-1 mx-2" href="attacks">Attack Vectors</a>
       </div>
@@ -34,11 +35,11 @@
       <trix-editor id="editor" input="content"
         data-controller="trix-embed"
         data-action="trix-paste->trix-embed#paste"
-        data-trix-embed-hosts-value='["clickfunnels.com", "loom.com", "voomly.com", "tonyrobbins.com"]'
+        data-trix-embed-hosts-value='["clickfunnels.com", "giphy.com", "loom.com", "voomly.com"]'
         data-trix-embed-header-template-value='header-template'
         data-trix-embed-iframe-template-value='iframe-template'
         data-trix-embed-image-template-value='image-template'
-        xdata-trix-embed-error-template-value='error-template'
+        data-trix-embed-error-template-value='error-template'
         xdata-trix-embed-paranoid-value="false"
         >
       </trix-editor>
@@ -62,14 +63,15 @@
   <template id="iframe-template">
     <div>
       <div><code>&lt;iframe&gt;</code></div>
-      <iframe class="ratio ratio-16x9 border rounded-1" style="max-width:800px; min-height:400px;"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture"
-        allowfullscreen
-        frameborder="0"
-        loading="lazy"
-        referrerpolicy="no-referrer"
-        scrolling="no">
-      </iframe>
+      <div class="ratio ratio-16x9" style="max-width:854px; max-height:480px;">
+        <iframe
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture"
+          allowfullscreen
+          loading="lazy"
+          referrerpolicy="no-referrer"
+          scrolling="no">
+        </iframe>
+      </div>
     </div>
   </template>
 
@@ -81,7 +83,17 @@
   </template>
 
   <template id="error-template">
-    <h1>FAIL</h1>
+    <div class="alert alert-warning align-items-center" role="alert">
+      <div class="d-flex">
+        <h4 class="alert-heading">Embed Warnings</h4>
+      </div>
+      <p class="lead">Some of your pasted content is not permitted.</p>
+      <p>You cannot embed media from here.</p>
+      <ul data-list="prohibited-hosts" class="text-danger"></ul>
+      <hr>
+      <p>Please limit your embeds to one of the following hosts.</p>
+      <ul data-list="allowed-hosts" class="text-success"></ul>
+    </div>
   </template>
 
   </div>

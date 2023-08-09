@@ -55,52 +55,56 @@ export default class extends Controller {
     const hosts = await this.hosts
     const renderer = new Renderer(this)
 
-    // Media URLs (images, videos, audio etc.)
-    const mediaURLs = pastedURLs.filter(url => getMediaType(url))
-    Array.from(pastedTemplate.content.firstElementChild.querySelectorAll('iframe')).forEach(frame => {
-      if (!mediaURLs.includes(frame.src)) mediaURLs.push(frame.src)
-    })
-    const validMediaURLs = mediaURLs.filter(url => validateURL(url, hosts))
-    const invalidMediaURLs = mediaURLs.filter(url => !validMediaURLs.includes(url))
+    try {
+      // Media URLs (images, videos, audio etc.)
+      const mediaURLs = pastedURLs.filter(url => getMediaType(url))
+      Array.from(pastedTemplate.content.firstElementChild.querySelectorAll('iframe')).forEach(frame => {
+        if (!mediaURLs.includes(frame.src)) mediaURLs.push(frame.src)
+      })
+      const validMediaURLs = mediaURLs.filter(url => validateURL(url, hosts))
+      const invalidMediaURLs = mediaURLs.filter(url => !validMediaURLs.includes(url))
 
-    // Standard URLs (non-media resources i.e. web pages etc.)
-    const standardURLs = pastedURLs.filter(url => !mediaURLs.includes(url))
-    const validStandardURLs = standardURLs.filter(url => validateURL(url, hosts))
-    const invalidStandardURLs = standardURLs.filter(url => !validStandardURLs.includes(url))
+      // Standard URLs (non-media resources i.e. web pages etc.)
+      const standardURLs = pastedURLs.filter(url => !mediaURLs.includes(url))
+      const validStandardURLs = standardURLs.filter(url => validateURL(url, hosts))
+      const invalidStandardURLs = standardURLs.filter(url => !validStandardURLs.includes(url))
 
-    let urls
+      let urls
 
-    // 1. render invalid media urls ..........................................................................
-    urls = invalidMediaURLs
-    if (urls.length) await this.insert(renderer.renderErrors(urls))
+      // 1. render invalid media urls ..........................................................................
+      urls = invalidMediaURLs
+      if (urls.length) await this.insert(renderer.renderErrors(urls, hosts.sort()))
 
-    // 2. render invalid standard urls .......................................................................
-    urls = invalidStandardURLs
-    if (urls.length) {
-      await this.insert(renderer.renderHeader('Pasted URLs'))
-      await this.insert(renderer.renderLinks(urls), { disposition: 'inline' })
-    }
+      // 2. render invalid standard urls .......................................................................
+      urls = invalidStandardURLs
+      if (urls.length) {
+        await this.insert(renderer.renderHeader('Pasted URLs'))
+        await this.insert(renderer.renderLinks(urls), { disposition: 'inline' })
+      }
 
-    // 3. render valid media urls ............................................................................
-    urls = validMediaURLs
-    if (urls.length) {
-      if (urls.length > 1) await this.insert(renderer.renderHeader('Embedded Media'))
-      await this.insert(renderer.renderEmbeds(urls))
-    }
+      // 3. render valid media urls ............................................................................
+      urls = validMediaURLs
+      if (urls.length) {
+        if (urls.length > 1) await this.insert(renderer.renderHeader('Embedded Media'))
+        await this.insert(renderer.renderEmbeds(urls))
+      }
 
-    // 4. render valid standard urls .........................................................................
-    urls = validStandardURLs
-    if (urls.length) await this.insert(renderer.renderEmbeds(validStandardURLs))
+      // 4. render valid standard urls .........................................................................
+      urls = validStandardURLs
+      if (urls.length) await this.insert(renderer.renderEmbeds(validStandardURLs))
 
-    // exit early if there is only one valid URL and it is the same as the pasted content
-    if (pastedURLs.length === 1 || validMediaURLs[0] === sanitizedPastedContent) return
-    if (pastedURLs.length === 1 || validStandardURLs[0] === sanitizedPastedContent) return
+      // exit early if there is only one valid URL and it is the same as the pasted content
+      if (pastedURLs.length === 1 || validMediaURLs[0] === sanitizedPastedContent) return
+      if (pastedURLs.length === 1 || validStandardURLs[0] === sanitizedPastedContent) return
 
-    // 5. render the pasted content as sanitized HTML ........................................................
-    if (sanitizedPastedContent.length) {
-      await this.insert(renderer.renderHeader('Pasted Content', sanitizedPastedContent))
-      this.editor.insertLineBreak()
-      this.insert(sanitizedPastedContent, { disposition: 'inline' })
+      // 5. render the pasted content as sanitized HTML ........................................................
+      if (sanitizedPastedContent.length) {
+        await this.insert(renderer.renderHeader('Pasted Content', sanitizedPastedContent))
+        this.editor.insertLineBreak()
+        this.insert(sanitizedPastedContent, { disposition: 'inline' })
+      }
+    } catch (ex) {
+      this.insert(renderer.renderException(ex))
     }
   }
 
@@ -113,6 +117,14 @@ export default class extends Controller {
   sanitizePastedElement(element) {
     element = element.cloneNode(true)
     element.querySelectorAll(mediaTags.join(', ')).forEach(tag => tag.remove())
+
+    const tags = element.querySelectorAll('*')
+    const newlines = element.innerHTML.match(/\r\n|\n|\r/g) || []
+
+    // replace newlines with <br> if there are <= 10% tags to newlines
+    if ((newlines.length ? tags.length / newlines.length : 0) <= 0.1)
+      element.innerHTML = element.innerHTML.replaceAll(/\r\n|\n|\r/g, '<br>')
+
     return element
   }
 

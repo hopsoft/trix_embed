@@ -8,12 +8,11 @@ export default class Renderer {
   // @param {Controller} controller - a Stimulus Controller instance
   constructor(controller) {
     this.controller = controller
-    this.hosts = this.controller.hostsValue
     this.initializeTempates()
   }
 
   initializeTempates() {
-    const templates = ['error', 'header', 'iframe', 'image']
+    const templates = ['error', 'exception', 'header', 'iframe', 'image']
     templates.forEach(name => this.initializeTemplate(name))
   }
 
@@ -93,30 +92,36 @@ export default class Renderer {
   // Renders embed errors
   //
   // @param {String[]} urls - list of URLs
+  // @param {String[]} allowedHosts - list of allowed hosts
   // @returns {String} HTML
   //
-  renderErrors(urls = ['https://example.com', 'https://test.com']) {
+  renderErrors(urls = ['https://example.com', 'https://test.com'], allowedHosts = []) {
     if (!urls?.length) return
+
     const element = this.errorTemplate.content.firstElementChild.cloneNode(true)
+    const prohibitedHostsElement = element.querySelector('[data-list="prohibited-hosts"]')
     const allowedHostsElement = element.querySelector('[data-list="allowed-hosts"]')
-    const hostsElement = element.querySelector('[data-list="hosts"]')
 
-    if (allowedHostsElement)
-      if (this.hosts.length)
-        allowedHostsElement.innerHTML = this.hosts.map(host => `<li><code>${host}</code></li>`).join('')
-      else
-        allowedHostsElement.innerHTML = `
-          <li>
-            <strong>Allowed hosts not configured yet.</strong>
-          </li>
-        `
-
-    if (hostsElement) {
-      const hosts = extractURLHosts(urls)
-      if (hosts.length) hostsElement.innerHTML = hosts.map(host => `<li><code>${host}</code></li>`).join('')
-      else hostsElement.innerHTML = '<li><code>Media is only supported from allowed hosts.</code></li>'
+    if (prohibitedHostsElement) {
+      const hosts = extractURLHosts(urls).sort()
+      if (hosts.length) prohibitedHostsElement.innerHTML = hosts.map(host => `<li>${host}</li>`).join('')
     }
 
+    if (allowedHostsElement && allowedHosts.length)
+      allowedHostsElement.innerHTML = allowedHosts.map(host => `<li>${host}</li>`).join('')
+
+    return element.outerHTML
+  }
+
+  // Renders an exception
+  //
+  // @param {String[]} ex - The exception
+  // @returns {String} HTML
+  //
+  renderException(ex) {
+    const element = this.exceptionTemplate.content.firstElementChild.cloneNode(true)
+    const code = element.querySelector('code')
+    code.innerHTML = ex.message
     return element.outerHTML
   }
 }
