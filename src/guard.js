@@ -12,7 +12,7 @@ export default class Guard {
     document.addEventListener('submit', event => {
       const f = event.target.closest('form')
       if (f && f.action === form.action && f.method === form.method && f !== form) event.preventDefault()
-    })
+    }, true)
 
     const observer = new MutationObserver((mutations, observer) => {
       mutations.forEach(mutation => {
