@@ -55,6 +55,14 @@ evil.innerHTML = '&lt;input name="content" value="EVIL"&gt;';
 document.body.appendChild(form);
 </code></pre>
 
+    <h3 class="mt-5">New Unattached Form</h3><hr>
+    <div class="alert alert-danger" role="alert">Blocks adding forms with the same action.</div>
+    <pre class="p-2 bg-light text-primary rounded border"><code>evil = document.createElement('form');
+evil.action = '/example';
+evil.innerHTML = '&lt;input name="content" value="EVIL"&gt;';
+evil.submit() // prevented
+</code></pre>
+
     <h3 class="mt-5">Session Storage</h3><hr>
     <h4>Clearing</h4>
     <div class="alert alert-danger" role="alert">Removes all references to the encryption key and allow list and prevents embeds from all hosts.</div>
