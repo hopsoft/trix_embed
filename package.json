@@ -1,9 +1,21 @@
 {
+  "author": "Nate Hopkins (hopsoft) <natehop@gmail.com>",
   "name": "trix-embed",
   "version": "0.0.0",
+  "repository": "https://github.com/hopsoft/trix_embed",
+  "description": "A Stimulus controller to safely embed external media in the Trix editor",
+  "keywords": [
+    "actiontext",
+    "stimulus",
+    "trix",
+    "trix-editor",
+    "wysiwyg"
+  ],
   "main": "dist/trix-embed.js",
+  "files": [
+    "dist/*"
+  ],
   "license": "MIT",
-  "private": true,
   "dependencies": {},
   "peerDependencies": {
     "@hotwired/stimulus": ">= 3.2",

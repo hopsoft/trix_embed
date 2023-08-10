@@ -1,6 +1,6 @@
 # Trix Embed
 
-Trix Embed is a Stimulus controller that supports safely embedding content from external sources.
+A Stimulus controller to safely embed external media in the Trix editor.
 
 ## Setup
 
