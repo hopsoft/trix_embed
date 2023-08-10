@@ -1,13 +1,15 @@
 import { generateKey, encryptValues, generateKeyAndEncryptValues } from './encryption'
-import Controller from './controller'
+import { getTrixEmbedControllerClass } from './controller'
 
 const defaultOptions = {
-  application: null
+  application: null,
+  Controller: null,
+  Trix: null
 }
 
 function initialize(options = defaultOptions) {
-  const { application } = options
-  application.register('trix-embed', Controller)
+  const { application, Controller, Trix } = options
+  application.register('trix-embed', getTrixEmbedControllerClass({ Controller, Trix }))
 }
 
 self.TrixEmbed = {

@@ -10,11 +10,11 @@ yarn add @hotwired/stimulus trix trix-embed
 
 ```js
 import 'trix'
-import { Application } from '@hotwired/stimulus'
+import { Application, Controller } from '@hotwired/stimulus'
 import TrixEmbed from 'trix-embed'
 
 const application = Application.start()
-TrixEmbed.initialize({ application })
+TrixEmbed.initialize({ application, Controller, Trix })
 ```
 
 ## Usage
