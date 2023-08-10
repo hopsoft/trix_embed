@@ -1,5 +1,7 @@
 FROM node:16.20.1-alpine3.18
 
+ENV DOCKER_CONTAINER=true
+
 RUN apk update && \
 apk add --no-cache bash && \
 rm -rf /var/cache/apk/*

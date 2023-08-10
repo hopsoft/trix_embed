@@ -12,7 +12,6 @@ x-default-app: &default_app
     - .:/app
     - external:/mnt/external
   environment:
-    DOCKER_CONTAINER: true
     YARN_CACHE_FOLDER: /mnt/external/yarn/.cache
 
 services:
