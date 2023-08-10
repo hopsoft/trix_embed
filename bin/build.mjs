@@ -3,7 +3,7 @@ import fs from 'fs'
 
 const context = await esbuild.context({
   entryPoints: ['src/index.js'],
-  external: ['@hotwired/stimulus', 'trix'],
+  external: [],
   bundle: true,
   format: 'esm',
   logLevel: 'debug',

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ "$DOCKER_CONTAINER" == "true" ]; then
+  rm -rfv /app/node_modules
+  ln -snv /mnt/external/node_modules /app/node_modules
+elif [ -L "$(pwd)/node_modules" ] ; then
+  rm -rfv "$(pwd)/node_modules"
+fi
+
+yarn
+yarn build
+
+ln -sfn "$(pwd)/dist/trix-embed.js" "$(pwd)/test/trix-embed.js"
+
+yarn http-server ./test -d false -p 3000 "$@"

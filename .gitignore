@@ -1,0 +1,10 @@
+*.gem
+*.key
+.containers.yml
+/.bundle/
+/doc/
+/log/*.log
+/node_modules/
+/pkg/
+/test/trix-embed.js
+Gemfile.lock
