@@ -1,14 +1,11 @@
-//import Trix from 'trix'
-//import { Controller } from '@hotwired/stimulus'
+import Trix from 'trix'
+import { Controller } from '@hotwired/stimulus'
 import { generateKey, encryptValues, decryptValues } from './encryption'
 import { extractURLsFromElement, validateURL } from './urls'
 import { getMediaType, mediaTags } from './media'
 import Guard from './guard'
 import Store from './store'
 import Renderer from './renderer'
-
-// imports for developing and testing with test/index.html
-import { Controller } from 'https://unpkg.com/@hotwired/stimulus@3.2.1/dist/stimulus.js'
 
 export default class extends Controller {
   static values = {

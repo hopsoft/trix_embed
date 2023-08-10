@@ -4,11 +4,11 @@
   "main": "dist/trix-embed.js",
   "license": "MIT",
   "private": true,
-  "dependencies": {
-    "@hotwired/stimulus": "^3.2",
-    "trix": "^2.0"
+  "dependencies": {},
+  "peerDependencies": {
+    "@hotwired/stimulus": ">= 3.2",
+    "trix": ">= 2.0"
   },
-  "peerDependencies": {},
   "devDependencies": {
     "esbuild": "^0.18.17",
     "http-server": "^14.1.1",
