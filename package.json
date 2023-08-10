@@ -15,7 +15,7 @@
     "prettier": "^3.0.0"
   },
   "scripts": {
-    "build": "bin/standardize && node bin/build.mjs",
-    "start": "http-server -c-1"
+    "build": "bin/standardize && yarn && node bin/build.mjs",
+    "dev": "bin/run -c-1"
   }
 }

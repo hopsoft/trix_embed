@@ -1,0 +1,13 @@
+#!/bin/bash
+
+yarn
+yarn build
+
+if [ "$DOCKER_CONTAINER" = "true" ]; then
+  rm -rfv /app/node_modules
+  ln -snv /mnt/external/node_modules /app/node_modules
+fi
+
+ln -sfn "$(pwd)/dist/trix-embed.js" "$(pwd)/test/trix-embed.js"
+
+yarn http-server ./test -d false -p 3000 "$@"
