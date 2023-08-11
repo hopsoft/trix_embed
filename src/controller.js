@@ -134,7 +134,7 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
       const { delay } = options
       return new Promise(resolve => {
         setTimeout(() => {
-          const attachment = new Trix.Attachment({ content, contentType: 'application/vnd.trix-embed.html' })
+          const attachment = new Trix.Attachment({ content, contentType: 'application/vnd.trix-embed' })
           this.editor.insertAttachment(attachment)
           resolve()
         }, delay)
