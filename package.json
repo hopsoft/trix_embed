@@ -11,7 +11,7 @@
     "trix-editor",
     "wysiwyg"
   ],
-  "main": "dist/trix-embed.js",
+  "main": "app/assets/builds/trix-embed.js",
   "files": [
     "dist/*"
   ],
