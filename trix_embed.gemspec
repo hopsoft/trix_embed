@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = ">= 2.7"
   s.add_dependency "rails", ">= 6.1"
+  s.add_dependency "nokogiri", ">= 1.15"
 
   s.add_development_dependency "capybara"
   s.add_development_dependency "capybara-playwright-driver"

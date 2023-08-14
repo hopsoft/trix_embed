@@ -1,3 +1,4 @@
 <%= tag.figure class: "attachment attachment--preview" do %>
-  <%= trix_embed.attachable.content.html_safe %>
+  <%# (local_assigns[:attachment] || local_assigns[:trix_embed].try(:attachable))&.content&.html_safe || "It didn't work!!!" %>
+  <%= attachment.content.html_safe %>
 <% end %>

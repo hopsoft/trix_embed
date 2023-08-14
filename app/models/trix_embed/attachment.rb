@@ -6,6 +6,8 @@ module TrixEmbed
     include GlobalID::Identification
     include ActionText::Attachable
 
+    CONTENT_TYPE = "application/vnd.trix-embed"
+
     # TAGS = %W[figure figcaption iframe].freeze
     # ATTRIBUTES = %w[allow allowfullscreen allowpaymentrequest credentialless csp loading referrerpolicy sandbox srcdoc].freeze
 
@@ -19,17 +21,16 @@ module TrixEmbed
       # Invoked by the override partial: action_text/contents/content partial
       # SEE: ActionText::Rendering.render and ActionText::Attachable for more details
       #
-      # @param content [ActionText::Content] The content to render
+      # @param content [String] The content to render
       # @param view_context [ActionView::Base] The view context being used for rendering
       # @return [String] The rendered HTML
       def render(content, view_context)
-        fragment = content.fragment.source # returns a Nokogiri::HTML4::DocumentFragment
+        # TODO: maybe handle this condition ??? content.is_a?(ActionText::Content)
+        fragment = Nokogiri::HTML.fragment(content)
+        matches = fragment.css("#{ActionText::Attachment.tag_name}[sgid][content-type='#{CONTENT_TYPE}']")
 
-        content.attachments.each do |attachment|
-          next unless attachment.attachable.is_a?(TrixEmbed::Attachment)
-
-          match = fragment.at_css("#{ActionText::Attachment.tag_name}[sgid='#{attachment.attachable.attachable_sgid}']")
-          next unless match
+        matches.each do |match|
+          attachment = ActionText::Attachment.from_node(match)
 
           # Working with a `TrixEmbed::Attachment`
           trix_embed = attachment.attachable
@@ -38,7 +39,7 @@ module TrixEmbed
           #       which sanitizes the markup... and it's important we retain that behavior.
           #
           #       Below is where we override native sanitization for Trix Embeds.
-          rerendered_html = view_context.render(trix_embed.to_partial_path, trix_embed: attachment)
+          rerendered_html = view_context.render(trix_embed.to_partial_path, attachment: attachment)
 
           # TODO: sanitize the rerendered_html
           # match.inner_html = sanitizer.sanitize(rerendered_html)
@@ -55,7 +56,7 @@ module TrixEmbed
       #
       # @param trix_html [String] The Trix HTML to update
       # @return [String] The updated Trix HTML
-      def update_attachments(trix_html)
+      def update_trix_content(trix_html)
         fragment = Nokogiri::HTML.fragment(trix_html)
 
         # TODO: Figure out why `data-trix-content-type='application/octet-stream'` for TrixEmbed content
