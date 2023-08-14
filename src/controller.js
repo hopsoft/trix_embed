@@ -96,8 +96,8 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
         if (urls.length) await this.insert(renderer.renderEmbeds(validStandardURLs))
 
         // exit early if there is only one valid URL and it is the same as the pasted content
-        if (pastedURLs.length === 1 || validMediaURLs[0] === sanitizedPastedContent) return
-        if (pastedURLs.length === 1 || validStandardURLs[0] === sanitizedPastedContent) return
+        if (validMediaURLs[0] === sanitizedPastedContent || validStandardURLs[0] === sanitizedPastedContent)
+          return this.editor.insertLineBreak()
 
         // 5. render the pasted content as sanitized HTML ........................................................
         if (sanitizedPastedContent.length) {
