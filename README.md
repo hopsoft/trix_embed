@@ -79,11 +79,15 @@ This project supports a fully Dockerized development experience.
 
 ## Releasing
 
-1. Run `yarn` to pick up the latest
+1. Run `yarn` and `bundle` to pick up the latest
+1. Bump version number at `lib/trix_embed/version.rb`. Pre-release versions use `.preN`
 1. Run `yarn build`
-1. Run `yarn publish`
+1. Commit and push changes to GitHub
+1. Run `rake release`
+1. Run `yarn publish --no-git-tag-version --access public`
 1. Yarn will prompt you for the new version. Pre-release versions use `-preN`
 1. Commit and push changes to GitHub
+1. Create a new release on GitHub ([here](https://github.com/hopsoft/trix_embed/releases)) and generate the changelog for the stable release for it
 
 ## License
 
