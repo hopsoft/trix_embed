@@ -7,15 +7,10 @@ module TrixEmbed
     include ActionText::Attachable
 
     CONTENT_TYPE = "application/vnd.trix-embed"
-
-    # TAGS = %W[figure figcaption iframe].freeze
-    # ATTRIBUTES = %w[allow allowfullscreen allowpaymentrequest credentialless csp loading referrerpolicy sandbox srcdoc].freeze
+    ALLOWED_TAGS = ActionText::ContentHelper.allowed_tags + %w[iframe]
+    ALLOWED_ATTRIBUTES = ActionText::ContentHelper.allowed_attributes + %w[allow allowfullscreen allowpaymentrequest credentialless csp loading referrerpolicy sandbox srcdoc]
 
     class << self
-      # def sanitizer
-      #   @sanitizer ||= ...
-      # end
-
       def rewrite_action_text_content(content)
         fragment = Nokogiri::HTML.fragment(content)
         matches = fragment.css("#{ActionText::Attachment.tag_name}[sgid][content-type='#{CONTENT_TYPE}']")
@@ -29,12 +24,14 @@ module TrixEmbed
             locals: {attachable: attachable}
           )
 
-          # TODO: sanitize the html
-          # match.inner_html = sanitizer.sanitize(html)
-          match.replace html
+          html = ActionText::ContentHelper.sanitizer.sanitize(
+            html,
+            tags: ALLOWED_TAGS,
+            attributes: ALLOWED_ATTRIBUTES,
+            scrubber: nil
+          )
 
-          # TODO: remove this... BulletTrain or CF2 sets visibility to hidden ??? ¯\_(ツ)_/¯
-          # match["style"] = "visibility:visible;"
+          match.replace html
         end
 
         fragment.to_html.html_safe
