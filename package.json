@@ -27,9 +27,9 @@
     "prettier": "^3.0.0"
   },
   "scripts": {
-    "build:all": "bundle && yarn && bin/standardize && rake build && node bin/build.mjs",
-    "build:js": "yarn && node bin/build.mjs",
-    "build:ruby": "bundle && rake build",
+    "build": "bin/standardize && rake build && node bin/build.mjs",
+    "build:js": "node bin/build.mjs",
+    "build:ruby": "rake build",
     "dev": "bin/run -c-1"
   }
 }

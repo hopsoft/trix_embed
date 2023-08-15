@@ -17,6 +17,10 @@ module TrixEmbed
 
     initializer "trix_embed.configuration" do
       Mime::Type.register "application/vnd.trix-embed", :trix_embed
+
+      ActiveSupport.on_load :action_controller do
+        helper TrixEmbed::ApplicationHelper
+      end
     end
   end
 end

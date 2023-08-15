@@ -16,62 +16,44 @@ module TrixEmbed
       #   @sanitizer ||= ...
       # end
 
-      # Renders Trix content with `TrixEmbed::Attachment`s
-      #
-      # Invoked by the override partial: action_text/contents/content partial
-      # SEE: ActionText::Rendering.render and ActionText::Attachable for more details
-      #
-      # @param content [String] The content to render
-      # @param view_context [ActionView::Base] The view context being used for rendering
-      # @return [String] The rendered HTML
-      def render(content, view_context)
-        # TODO: maybe handle this condition ??? content.is_a?(ActionText::Content)
+      def rewrite_action_text_content(content)
         fragment = Nokogiri::HTML.fragment(content)
         matches = fragment.css("#{ActionText::Attachment.tag_name}[sgid][content-type='#{CONTENT_TYPE}']")
 
         matches.each do |match|
           attachment = ActionText::Attachment.from_node(match)
+          attachable = attachment.attachable
 
-          # Working with a `TrixEmbed::Attachment`
-          trix_embed = attachment.attachable
+          html = ActionText::Content.render(
+            partial: attachable.to_action_text_content_partial_path,
+            locals: {attachable: attachable}
+          )
 
-          # NOTE: `match` is the result of native rendering by `render_action_text_content`,
-          #       which sanitizes the markup... and it's important we retain that behavior.
-          #
-          #       Below is where we override native sanitization for Trix Embeds.
-          rerendered_html = view_context.render(trix_embed.to_partial_path, attachment: attachment)
-
-          # TODO: sanitize the rerendered_html
-          # match.inner_html = sanitizer.sanitize(rerendered_html)
-          match.inner_html = rerendered_html
+          # TODO: sanitize the html
+          # match.inner_html = sanitizer.sanitize(html)
+          match.replace html
 
           # TODO: remove this... BulletTrain or CF2 sets visibility to hidden ??? ¯\_(ツ)_/¯
-          match["style"] = "visibility:visible;"
+          # match["style"] = "visibility:visible;"
         end
 
         fragment.to_html.html_safe
       end
 
-      # Assigns sgid attributes for `TrixEmbed::Attachment`s in the given Trix HTML.
-      #
-      # @param trix_html [String] The Trix HTML to update
-      # @return [String] The updated Trix HTML
-      def update_trix_content(trix_html)
+      def rewrite_trix_html(trix_html)
         fragment = Nokogiri::HTML.fragment(trix_html)
+        matches = fragment.css("[data-trix-attachment][data-trix-content-type='#{CONTENT_TYPE}']")
 
-        # TODO: Figure out why `data-trix-content-type='application/octet-stream'` for TrixEmbed content
-        #       It should be be `data-trix-content-type='application/vnd.trix-embed'`
-        # attachment_elements = fragment.css("[data-trix-attachment][data-trix-content-type='application/vnd.trix-embed']")
-        attachment_elements = fragment.css("[data-trix-attachment]")
+        matches.each do |match|
+          data = JSON.parse(match["data-trix-attachment"]).deep_transform_keys(&:underscore)
 
-        attachment_elements.each do |attachment_element|
-          # TODO: Remove this guard one data-trix-content-type is correct in the HTML markup
-          attachment_data = JSON.parse(attachment_element["data-trix-attachment"])
-          next unless attachment_data["contentType"] == "application/vnd.trix-embed"
+          attachable = TrixEmbed::Attachment.new(data)
+          attachment = ActionText::Attachment.from_attachable(attachable)
 
-          trix_embed = TrixEmbed::Attachment.new(attachment_data.deep_transform_keys(&:underscore))
-          attachment_data["sgid"] = trix_embed.attachable_sgid
-          attachment_element["data-trix-attachment"] = attachment_data.to_json
+          match.replace ActionText::Content.render(
+            partial: attachable.to_partial_path,
+            locals: {attachment: attachment}
+          )
         end
 
         fragment.to_html
@@ -97,12 +79,19 @@ module TrixEmbed
       true
     end
 
+    # What gets saved to the database
     def to_partial_path
-      "trix_embed/attachments/attachment"
+      "trix_embed/action_text_attachment"
     end
 
+    # What gets presented in the browser (show view)
+    def to_action_text_content_partial_path
+      "trix_embed/action_text_content_show"
+    end
+
+    # What gets presented in the browser (edit view)
     def to_trix_content_attachment_partial_path
-      "trix_embed/attachments/attachment"
+      "trix_embed/action_text_content_edit"
     end
   end
 end
