@@ -2,14 +2,14 @@ import * as esbuild from 'esbuild'
 import fs from 'fs'
 
 const context = await esbuild.context({
-  entryPoints: ['src/index.js'],
+  entryPoints: ['app/javascript/index.js'],
   external: [],
   bundle: true,
   format: 'esm',
   logLevel: 'debug',
   metafile: true,
   minify: true,
-  outfile: 'dist/trix-embed.js',
+  outfile: 'app/assets/builds/trix-embed.js',
   sourcemap: false,
   target: ['chrome79', 'edge44', 'es2020', 'firefox71', 'opera65', 'safari13']
 })
@@ -21,7 +21,7 @@ if (watch) {
   await context.watch()
 } else {
   const result = await context.rebuild()
-  const metafile = 'dist/trix-embed.metafile.json'
+  const metafile = 'app/assets/builds/trix-embed.metafile.json'
 
   fs.writeFile(metafile, JSON.stringify(result.metafile), ex => {
     if (ex) {

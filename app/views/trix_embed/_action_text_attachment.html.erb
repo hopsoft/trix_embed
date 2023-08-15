@@ -1,0 +1,3 @@
+<%= tag.send ActionText::Attachment.tag_name,
+  sgid: trix_embed_attachment(local_assigns)&.attachable_sgid,
+  content_type: trix_embed_attachment(local_assigns)&.content_type %>

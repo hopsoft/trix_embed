@@ -1,22 +1,26 @@
+const submitGuards = {}
+
 export default class Guard {
   constructor(controller) {
     this.controller = controller
     controller.element.addEventListener('trix-file-accept', event => event.preventDefault())
   }
 
+  protectSubmit = event => {
+    const form = this.controller.formElement
+    const f = event.target.closest('form')
+    if (f && f.action === form.action && f.method === form.method && f !== form) event.preventDefault()
+  }
+
   protect() {
     if (!this.controller.formElement) return
     const form = this.controller.formElement
     const input = this.controller.inputElement
+    const key = `${form.method}${form.action}`
 
-    document.addEventListener(
-      'submit',
-      event => {
-        const f = event.target.closest('form')
-        if (f && f.action === form.action && f.method === form.method && f !== form) event.preventDefault()
-      },
-      true
-    )
+    document.removeEventListener('submit', handlers[key], true)
+    handlers[key] = this.protectSubmit.bind(this)
+    document.addEventListener('submit', handlers[key], true)
 
     const observer = new MutationObserver((mutations, observer) => {
       mutations.forEach(mutation => {
