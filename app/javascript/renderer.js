@@ -2,6 +2,18 @@ import { createURL, extractURLHosts } from './urls'
 import { isImage, getMediaType } from './media'
 import { getTemplate } from './templates'
 
+// puts TrixEmbed::Attachment::ALLOWED_TAGS.sort.join(" ")
+const ALLOWED_TAGS =
+  'a abbr acronym action-text-attachment address b big blockquote br cite code dd del dfn div dl dt em figcaption figure h1 h2 h3 h4 h5 h6 hr i iframe img ins kbd li ol p pre samp small span strong sub sup time tt ul var'.split(
+    ' '
+  )
+
+// puts TrixEmbed::Attachment::ALLOWED_ATTRIBUTES.sort.join(" ")
+const ALLOWED_ATTRIBUTES =
+  'abbr allow allowfullscreen allowpaymentrequest alt caption cite content-type credentialless csp datetime filename filesize height href lang loading name presentation previewable referrerpolicy sandbox sgid src srcdoc title url width xml:lang'.split(
+    ' '
+  )
+
 export default class Renderer {
   // Constructs a new Renderer instance
   //
@@ -9,6 +21,20 @@ export default class Renderer {
   constructor(controller) {
     this.controller = controller
     this.initializeTempates()
+  }
+
+  sanitize(element) {
+    const all = [element].concat(Array.from(element.querySelectorAll('*')))
+    all.forEach(el => {
+      if (ALLOWED_TAGS.includes(el.tagName.toLowerCase())) {
+        ;[...el.attributes].forEach(attr => {
+          if (!ALLOWED_ATTRIBUTES.includes(attr.name.toLowerCase())) el.removeAttribute(attr.name)
+        })
+      } else {
+        el.remove()
+      }
+    })
+    return element
   }
 
   initializeTempates() {
@@ -76,7 +102,7 @@ export default class Renderer {
       iframe.src = url
     }
 
-    return embed.outerHTML
+    return this.sanitize(embed).outerHTML
   }
 
   // Renders a list of URLs as HTML embeds i.e. iframes or media tags (img, video, audio etc.)

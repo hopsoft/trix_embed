@@ -8,7 +8,18 @@ module TrixEmbed
 
     CONTENT_TYPE = "application/vnd.trix-embed"
     ALLOWED_TAGS = ActionText::ContentHelper.allowed_tags + %w[iframe]
-    ALLOWED_ATTRIBUTES = ActionText::ContentHelper.allowed_attributes + %w[allow allowfullscreen allowpaymentrequest credentialless csp loading referrerpolicy sandbox srcdoc]
+    ALLOWED_ATTRIBUTES = (
+      ActionText::ContentHelper.allowed_attributes + %w[
+        allow
+        allowfullscreen
+        allowpaymentrequest
+        credentialless
+        csp
+        loading
+        referrerpolicy
+        sandbox
+        srcdoc
+      ]) - %w[class style]
 
     class << self
       def rewrite_action_text_content(content)

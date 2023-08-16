@@ -18,9 +18,9 @@ export default class Guard {
     const input = this.controller.inputElement
     const key = `${form.method}${form.action}`
 
-    document.removeEventListener('submit', handlers[key], true)
-    handlers[key] = this.protectSubmit.bind(this)
-    document.addEventListener('submit', handlers[key], true)
+    document.removeEventListener('submit', submitGuards[key], true)
+    submitGuards[key] = this.protectSubmit.bind(this)
+    document.addEventListener('submit', submitGuards[key], true)
 
     const observer = new MutationObserver((mutations, observer) => {
       mutations.forEach(mutation => {
