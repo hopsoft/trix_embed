@@ -3,7 +3,15 @@ const submitGuards = {}
 export default class Guard {
   constructor(controller) {
     this.controller = controller
-    controller.element.addEventListener('trix-file-accept', event => event.preventDefault())
+  }
+
+  preventAttachments () {
+    this.controller.toolbarElement.querySelector('[data-trix-button-group="file-tools"]')?.remove()
+    this.controller.element.addEventListener('trix-file-accept', event => event.preventDefault())
+  }
+
+  preventLinks() {
+    this.controller.toolbarElement.querySelector('[data-trix-action="link"]')?.remove()
   }
 
   protectSubmit = event => {
@@ -13,7 +21,11 @@ export default class Guard {
   }
 
   protect() {
+    this.preventAttachments()
+    this.preventLinks()
+
     if (!this.controller.formElement) return
+
     const form = this.controller.formElement
     const input = this.controller.inputElement
     const key = `${form.method}${form.action}`

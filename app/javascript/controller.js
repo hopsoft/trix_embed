@@ -27,16 +27,14 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
     }
 
     async connect() {
-      this.onpaste = this.paste.bind(this)
-      this.element.addEventListener('trix-paste', this.onpaste, true)
-      this.toolbarElement.querySelector('[data-trix-button-group="file-tools"]')?.remove()
+      this.guard = new Guard(this)
+      if (this.paranoidValue) this.guard.protect()
 
       this.store = new Store(this)
-      this.guard = new Guard(this)
-
       await this.rememberConfig()
 
-      if (this.paranoid) this.guard.protect()
+      this.onpaste = this.paste.bind(this)
+      this.element.addEventListener('trix-paste', this.onpaste, true)
 
       window.addEventListener('beforeunload', () => this.disconnect())
     }
