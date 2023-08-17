@@ -7,11 +7,11 @@ var X=Object.defineProperty,Q=Object.defineProperties;var Y=Object.getOwnPropert
       <h1>Copy/Paste Info</h1>
       <hr>
       <h3>The pasted content includes media from unsupported hosts.</h3>
-      <h2>Prohibited Hosts / Domains</h2>
+      <h2>Prohibited Hosts</h2>
       <ul data-list="prohibited-hosts">
         <li>Media is only supported from allowed hosts.</li>
       </ul>
-      <h2>Allowed Hosts / Domains</h2>
+      <h2>Allowed Hosts</h2>
       <ul data-list="allowed-hosts">
         <li>Allowed hosts not configured.</li>
       </ul>

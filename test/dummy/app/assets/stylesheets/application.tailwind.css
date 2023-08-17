@@ -13,6 +13,24 @@
 */
 @import 'actiontext.css';
 
-.trix-content .attachment {
+.trix-content a {
+  @apply my-4 underline underline-offset-2 text-blue-600 !important;
+}
+.trix-content figure, .trix-content figcaption, {
   @apply block !important;
+}
+form .trix-content figure:not(:has(iframe)):not(:has(img)):not(:has(a)) {
+  @apply p-4;
+}
+.trix-content figure h1 {
+  @apply my-4 text-3xl font-bold text-rose-500;
+}
+.trix-content figure h2 {
+  @apply my-3 text-2xl font-bold;
+}
+.trix-content figure h3 {
+  @apply mt-3 mb-6 text-xl font-normal;
+}
+.trix-content figure hr {
+  @apply border-dotted border-rose-300;
 }
