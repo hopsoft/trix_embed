@@ -24,7 +24,6 @@ export default class Renderer {
   }
 
   sanitize(element) {
-    return element
     const all = [element].concat(Array.from(element.querySelectorAll('*')))
     all.forEach(el => {
       if (ALLOWED_TAGS.includes(el.tagName.toLowerCase())) {
@@ -76,7 +75,6 @@ export default class Renderer {
     if (!urls.length) return
     return `<ul>${urls.map(url => `<li>${url}</li>`).join('')}</ul><br>`
   }
-
 
   // TODO: Add templates for links
   // Renders a list of URLs as a list of HTML links i.e. anchor tags <a>
