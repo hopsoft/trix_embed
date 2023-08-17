@@ -27,15 +27,20 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
     }
 
     async connect() {
-      this.store = new Store(this)
       this.guard = new Guard(this)
+      if (this.paranoidValue) this.guard.protect()
+
+      this.store = new Store(this)
       await this.rememberConfig()
-      if (this.paranoid) this.guard.protect()
-      this.toolbarElement.querySelector('[data-trix-button-group="file-tools"]')?.remove()
-      window.addEventListener('beforeunload', () => this.disconnect()) // TODO: this may not be necessary
+
+      this.onpaste = this.paste.bind(this)
+      this.element.addEventListener('trix-paste', this.onpaste, true)
+
+      window.addEventListener('beforeunload', () => this.disconnect())
     }
 
     disconnect() {
+      this.element.removeEventListener('trix-paste', this.onpaste, true)
       if (this.paranoid) this.guard.cleanup()
       this.forgetConfig()
     }
@@ -80,29 +85,31 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
         // 2. render invalid standard urls .......................................................................
         urls = invalidStandardURLs
         if (urls.length) {
-          await this.insert(renderer.renderHeader('Pasted URLs'))
-          await this.insert(renderer.renderLinks(urls), { disposition: 'inline' })
+          await this.insert(renderer.renderHeader('Prohibited URLs'))
+          await this.insert(renderer.renderURLs(urls), { disposition: 'inline' })
         }
 
-        // 3. render valid media urls ............................................................................
+        // 3. render valid standard urls .........................................................................
+        urls = validStandardURLs
+        if (urls.length) {
+          if (pastedURLs.length > 1) await this.insert(renderer.renderHeader('Allowed URLs'))
+          await this.insert(renderer.renderLinks(validStandardURLs))
+        }
+
+        // 4. render valid media urls ............................................................................
         urls = validMediaURLs
         if (urls.length) {
-          if (urls.length > 1) await this.insert(renderer.renderHeader('Embedded Media'))
+          if (pastedURLs.length > 1) await this.insert(renderer.renderHeader('Allowed Media Embeds'))
           await this.insert(renderer.renderEmbeds(urls))
         }
 
-        // 4. render valid standard urls .........................................................................
-        urls = validStandardURLs
-        if (urls.length) await this.insert(renderer.renderEmbeds(validStandardURLs))
-
         // exit early if there is only one valid URL and it is the same as the pasted content
         if (validMediaURLs[0] === sanitizedPastedContent || validStandardURLs[0] === sanitizedPastedContent)
-          return this.editor.insertLineBreak()
+          return
 
         // 5. render the pasted content as sanitized HTML ........................................................
         if (sanitizedPastedContent.length) {
-          await this.insert(renderer.renderHeader('Pasted Content', sanitizedPastedContent))
-          this.editor.insertLineBreak()
+          await this.insert(renderer.renderHeader('Sanitized Pasted Content', sanitizedPastedContent))
           this.insert(sanitizedPastedContent, { disposition: 'inline' })
         }
       } catch (ex) {
@@ -118,14 +125,18 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
 
     sanitizePastedElement(element) {
       element = element.cloneNode(true)
-      element.querySelectorAll(mediaTags.join(', ')).forEach(tag => tag.remove())
 
-      const tags = element.querySelectorAll('*')
-      const newlines = element.innerHTML.match(/\r\n|\n|\r/g) || []
+      element.querySelectorAll(mediaTags.join(', ')).forEach(tag => {
+        const url = tag.src || tag.href || '?'
+        tag.outerHTML = `<div>MEDIA: ${url}</div>`
+      })
 
-      // replace newlines with <br> if there are <= 10% tags to newlines
-      if ((newlines.length ? tags.length / newlines.length : 0) <= 0.1)
-        element.innerHTML = element.innerHTML.replaceAll(/\r\n|\n|\r/g, '<br>')
+      element.querySelectorAll('a').forEach(tag => {
+        const url = tag.href || '?'
+        tag.outerHTML = `<div>LINK: ${url}</div>`
+      })
+
+      element.innerHTML = element.innerHTML.replaceAll(/(\r\n|\n|\r)+/g, '<br>')
 
       return element
     }
@@ -199,7 +210,10 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
     }
 
     get inputElement() {
-      return document.getElementById(this.element.getAttribute('input'))
+      return (
+        this.formElement?.querySelector(`#${this.element.getAttribute('input')}`) ||
+        document.getElementById(this.element.getAttribute('input'))
+      )
     }
 
     get formElement() {

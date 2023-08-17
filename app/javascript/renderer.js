@@ -63,6 +63,19 @@ export default class Renderer {
     return header.outerHTML
   }
 
+  renderURLs(urls = ['https://example.com', 'https://test.com']) {
+    urls = urls
+      .filter(url => {
+        let ok = false
+        createURL(url, u => (ok = true))
+        return ok
+      })
+      .sort()
+
+    if (!urls.length) return
+    return `<ul>${urls.map(url => `<li>${url}</li>`).join('')}</ul><br>`
+  }
+
   // TODO: Add templates for links
   // Renders a list of URLs as a list of HTML links i.e. anchor tags <a>
   //

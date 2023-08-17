@@ -3,7 +3,15 @@ const submitGuards = {}
 export default class Guard {
   constructor(controller) {
     this.controller = controller
-    controller.element.addEventListener('trix-file-accept', event => event.preventDefault())
+  }
+
+  preventAttachments() {
+    this.controller.toolbarElement.querySelector('[data-trix-button-group="file-tools"]')?.remove()
+    this.controller.element.addEventListener('trix-file-accept', event => event.preventDefault())
+  }
+
+  preventLinks() {
+    this.controller.toolbarElement.querySelector('[data-trix-action="link"]')?.remove()
   }
 
   protectSubmit = event => {
@@ -13,7 +21,11 @@ export default class Guard {
   }
 
   protect() {
+    this.preventAttachments()
+    this.preventLinks()
+
     if (!this.controller.formElement) return
+
     const form = this.controller.formElement
     const input = this.controller.inputElement
     const key = `${form.method}${form.action}`
@@ -28,15 +40,20 @@ export default class Guard {
 
         switch (type) {
           case 'attributes':
-            if (target.closest('form')?.action === form.action)
+            const f = node.closest('form')
+            if (form?.action && form.action === f?.action) {
               if (target.id === input.id || target.name === input.name) target.remove()
+            }
             break
           case 'childList':
             addedNodes.forEach(node => {
               if (node.nodeType === Node.ELEMENT_NODE) {
-                if (node.tagName.match(/^form$/i) && node.action === form.action) node.remove()
-                if (target.closest('form')?.action === form.action)
-                  if (node.id === input.id || node.name === input.name) node.remove()
+                const f = node.closest('form')
+                if (form?.action && form.action === f?.action) {
+                  if (f !== form) node.remove()
+                } else if (input?.name && input.name === node?.name) {
+                  node.remove()
+                }
               }
             })
             break

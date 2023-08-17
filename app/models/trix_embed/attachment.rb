@@ -22,7 +22,7 @@ module TrixEmbed
       ]) - %w[class style]
 
     class << self
-      def rewrite_action_text_content(content)
+      def rewrite_for_display(content)
         fragment = Nokogiri::HTML.fragment(content)
         matches = fragment.css("#{ActionText::Attachment.tag_name}[sgid][content-type='#{CONTENT_TYPE}']")
 
@@ -48,7 +48,7 @@ module TrixEmbed
         fragment.to_html.html_safe
       end
 
-      def rewrite_trix_html(trix_html)
+      def rewrite_for_storage(trix_html)
         fragment = Nokogiri::HTML.fragment(trix_html)
         matches = fragment.css("[data-trix-attachment][data-trix-content-type='#{CONTENT_TYPE}']")
 
