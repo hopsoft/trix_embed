@@ -9,7 +9,8 @@ yarn add @hotwired/stimulus trix trix-embed
 ```
 
 ```js
-import 'trix'
+import Trix from 'trix'
+import "@rails/actiontext"
 import { Application, Controller } from '@hotwired/stimulus'
 import TrixEmbed from 'trix-embed'
 
@@ -24,7 +25,6 @@ TrixEmbed.initialize({ application, Controller, Trix })
   <input id="content" name="content" type="hidden">
   <trix-editor id="editor" input="content"
     data-controller="trix-embed"
-    data-action="trix-paste->trix-embed#paste"
     data-trix-embed-hosts-value='["example.com", "test.com"]'>
   </trix-editor>
 </form>
@@ -46,36 +46,8 @@ TrixEmbed.initialize({ application, Controller, Trix })
 ```sh
 git clone https://github.com/hopsoft/trix_embed.git
 cd trix_embed
-yarn
-yarn build
-yarn dev
+bin/dev
 ```
-### Docker
-
-This project supports a fully Dockerized development experience.
-
-1. Simply run the following commands to get started.
-
-   ```sh
-   git clone -o github https://github.com/hopsoft/trix_embed.git
-   cd trix_embed
-   ```
-
-   ```sh
-   docker compose up -d # start the envionment (will take a few minutes on 1st run)
-   open http://localhost:3000 # in a browser
-   ```
-
-   And, if you're using the [containers gem (WIP)](https://github.com/hopsoft/containers).
-
-   ```sh
-   containers up # start the envionment (will take a few minutes on 1st run)
-   open http://localhost:3000 # in a browser
-   ```
-
-1. Edit files using your preferred tools on the host machine.
-
-1. That's it!
 
 ## Releasing
 

@@ -50,8 +50,6 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
       let content = html || string || ''
       const pastedTemplate = this.buildPastedTemplate(content)
       const pastedElement = pastedTemplate.content.firstElementChild
-      const sanitizedPastedElement = this.sanitizePastedElement(pastedElement)
-      const sanitizedPastedContent = sanitizedPastedElement.innerHTML.trim()
       const pastedURLs = extractURLsFromElement(pastedElement)
 
       // no URLs were pasted, let Trix handle it ...............................................................
@@ -104,12 +102,14 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
         }
 
         // exit early if there is only one valid URL and it is the same as the pasted content
-        if (validMediaURLs[0] === sanitizedPastedContent || validStandardURLs[0] === sanitizedPastedContent)
-          return
+        if ((pastedURLs.length === 1 && validMediaURLs.length === 1) || validStandardURLs.length === 1) return
 
         // 5. render the pasted content as sanitized HTML ........................................................
+        const sanitizedPastedElement = this.sanitizePastedElement(pastedElement)
+        const sanitizedPastedContent = sanitizedPastedElement.innerHTML.trim()
         if (sanitizedPastedContent.length) {
           await this.insert(renderer.renderHeader('Sanitized Pasted Content', sanitizedPastedContent))
+          this.editor.insertLineBreak()
           this.insert(sanitizedPastedContent, { disposition: 'inline' })
         }
       } catch (ex) {
