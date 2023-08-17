@@ -102,7 +102,7 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
         }
 
         // exit early if there is only one valid URL and it is the same as the pasted content
-        if ((pastedURLs.length === 1 && validMediaURLs.length === 1) || validStandardURLs.length === 1) return
+        if (pastedURLs.length === 1 && (validMediaURLs.length === 1 || validStandardURLs.length === 1)) return
 
         // 5. render the pasted content as sanitized HTML ........................................................
         const sanitizedPastedElement = this.sanitizePastedElement(pastedElement)
