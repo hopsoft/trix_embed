@@ -199,7 +199,10 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
     }
 
     get inputElement() {
-      return document.getElementById(this.element.getAttribute('input'))
+      return (
+        this.formElement?.querySelector(`#${this.element.getAttribute('input')}`) ||
+        document.getElementById(this.element.getAttribute('input'))
+      )
     }
 
     get formElement() {

@@ -24,6 +24,7 @@ export default class Renderer {
   }
 
   sanitize(element) {
+    return element
     const all = [element].concat(Array.from(element.querySelectorAll('*')))
     all.forEach(el => {
       if (ALLOWED_TAGS.includes(el.tagName.toLowerCase())) {

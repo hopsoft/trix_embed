@@ -28,15 +28,20 @@ export default class Guard {
 
         switch (type) {
           case 'attributes':
-            if (target.closest('form')?.action === form.action)
+            const f = node.closest('form')
+            if (form?.action && form.action === f?.action) {
               if (target.id === input.id || target.name === input.name) target.remove()
+            }
             break
           case 'childList':
             addedNodes.forEach(node => {
               if (node.nodeType === Node.ELEMENT_NODE) {
-                if (node.tagName.match(/^form$/i) && node.action === form.action) node.remove()
-                if (target.closest('form')?.action === form.action)
-                  if (node.id === input.id || node.name === input.name) node.remove()
+                const f = node.closest('form')
+                if (form?.action && form.action === f?.action) {
+                  if (f !== form) node.remove()
+                } else if (input?.name && input.name === node?.name) {
+                  node.remove()
+                }
               }
             })
             break

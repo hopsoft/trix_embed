@@ -22,6 +22,7 @@ Gem::Specification.new do |s|
   s.add_dependency "rails", ">= 6.1"
   s.add_dependency "nokogiri", ">= 1.15"
 
+  s.add_development_dependency "amazing_print"
   s.add_development_dependency "capybara"
   s.add_development_dependency "capybara-playwright-driver"
   s.add_development_dependency "foreman"
@@ -35,6 +36,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "pry-rails"
   s.add_development_dependency "puma"
   s.add_development_dependency "rake"
+  s.add_development_dependency "rerun"
   s.add_development_dependency "rexml"
   s.add_development_dependency "sprockets-rails"
   s.add_development_dependency "sqlite3"
