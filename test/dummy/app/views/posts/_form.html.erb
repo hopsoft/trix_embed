@@ -15,7 +15,6 @@
     <%= form.rich_text_area :body, placeholder: "Write something amazing...",
       data: {
         controller: "trix-embed",
-        action: "trix-paste->trix-embed#paste",
         trix_embed_hosts_value: ["clickfunnels.com", "giphy.com", "loom.com", "voomly.com"],
         trix_embed_iframe_template_value: "iframe-template"
       } %>
