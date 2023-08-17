@@ -7,6 +7,8 @@ export default class Guard {
 
   preventAttachments() {
     this.controller.toolbarElement.querySelector('[data-trix-button-group="file-tools"]')?.remove()
+    this.controller.element.removeAttribute('data-direct-upload-url')
+    this.controller.element.removeAttribute('data-blob-url-template')
     this.controller.element.addEventListener('trix-file-accept', event => event.preventDefault())
   }
 

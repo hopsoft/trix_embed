@@ -45,10 +45,14 @@ export default class Renderer {
   initializeTemplate(name) {
     let template
 
-    if (this.controller[`has${name.charAt(0).toUpperCase() + name.slice(1)}TemplateValue`])
-      template = document.getElementById(this.controller[`${name}TemplateValue`])
+    const property = `${name}Template`
+    const stimulusName = `${property}Value`
 
-    this[`${name}Template`] = template || getTemplate(name)
+    if (this.controller[`has${stimulusName.charAt(0).toUpperCase() + stimulusName.slice(1)}`])
+      template = document.getElementById(this.controller[stimulusName])
+
+    this[property] = template || getTemplate(name)
+    this.controller[stimulusName] = null
   }
 
   // Renders an embed header
