@@ -5,7 +5,7 @@ export default class Guard {
     this.controller = controller
   }
 
-  preventAttachments () {
+  preventAttachments() {
     this.controller.toolbarElement.querySelector('[data-trix-button-group="file-tools"]')?.remove()
     this.controller.element.addEventListener('trix-file-accept', event => event.preventDefault())
   }

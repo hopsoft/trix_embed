@@ -1,7 +1,7 @@
 const defaults = {
-  header: `<h1></h1>`,
-  iframe: `<iframe></iframe>`,
-  image: `<img></img>`,
+  header: `<div><h1></h1></div>`,
+  iframe: `<div><iframe></iframe></div>`,
+  image: `<div><img></img></div>`,
 
   error: `
     <div>

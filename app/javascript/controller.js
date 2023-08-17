@@ -102,12 +102,11 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
 
         // exit early if there is only one valid URL and it is the same as the pasted content
         if (validMediaURLs[0] === sanitizedPastedContent || validStandardURLs[0] === sanitizedPastedContent)
-          return this.editor.insertLineBreak()
+          return
 
         // 5. render the pasted content as sanitized HTML ........................................................
         if (sanitizedPastedContent.length) {
           await this.insert(renderer.renderHeader('Pasted Content', sanitizedPastedContent))
-          this.editor.insertLineBreak()
           this.insert(sanitizedPastedContent, { disposition: 'inline' })
         }
       } catch (ex) {

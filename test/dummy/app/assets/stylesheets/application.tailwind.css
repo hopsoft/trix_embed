@@ -12,3 +12,7 @@
 
 */
 @import 'actiontext.css';
+
+.trix-content .attachment {
+  @apply block !important;
+}
