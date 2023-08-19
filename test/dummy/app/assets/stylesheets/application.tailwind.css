@@ -34,3 +34,17 @@ form .trix-content figure:not(:has(iframe)):not(:has(img)):not(:has(a)) {
 .trix-content figure hr {
   @apply border-dotted border-rose-300;
 }
+.trix-content ins {
+  @apply px-1 bg-green-200 !important;
+}
+.trix-content del {
+  @apply px-1 bg-red-200 line-through;
+}
+/*
+.trix-content ins:before {
+  content: '+ ';
+}
+.trix-content del:before {
+  content: '- ';
+}
+*/

@@ -4,10 +4,10 @@
 // @param {Function} callback - Function to be called with the URL object
 // @returns {URL, null} URL object
 //
-export function createURL(value, callback = url => {}) {
+export function createURLObject(value, callback = url => {}) {
   try {
     const url = new URL(String(value).trim())
-    if (callback) callback(url)
+    if (url && callback) callback(url)
     return url
   } catch (_error) {
     console.info(`Failed to parse URL! value='${value}']`)
@@ -21,67 +21,71 @@ export function createURL(value, callback = url => {}) {
 // @param {Function} callback - Function to be called with the URL host
 // @returns {String, null} URL host
 //
-function createURLHost(value, callback = host => {}) {
-  let host = null
-  createURL(value, url => (host = url.host))
+function extractURLHost(value, callback = host => {}) {
+  let host = createURLObject(value)?.host
   if (host && callback) callback(host)
   return host
 }
 
-function extractURLsFromTextNodes(element) {
-  const urls = []
-  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, node => {
-    const value = node.nodeValue
-    if (!value.includes('http')) return NodeFilter.FILTER_REJECT
-    return NodeFilter.FILTER_ACCEPT
+export function createURLTextNodeTreeWalker(element) {
+  return document.createTreeWalker(element, NodeFilter.SHOW_TEXT, node => {
+    //console.log('NODE', !!node.nodeValue.match(/http/gi), node.nodeValue)
+    return node.nodeValue.match(/http/gi) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
   })
+}
+
+function extractURLsFromTextNodes(element) {
+  const urls = new Set()
+  const walker = createURLTextNodeTreeWalker(element)
 
   let node
   while ((node = walker.nextNode()))
     node.nodeValue
       .split(/\s+/)
       .filter(val => val.startsWith('http'))
-      .forEach(match =>
-        createURL(match, url => {
-          if (!urls.includes(url.href)) urls.push(url.href)
-        })
-      )
+      .forEach(match => createURLObject(match, url => urls.add(url.href)))
 
-  return urls
+  return [...urls]
 }
 
-function extractURLsFromElements(element) {
-  const urls = []
+export function extractURLFromElement(element) {
+  if (element.src) {
+    const url = element.src.trim()
+    if (url.length) return url
+  }
 
-  if (element.src) createURL(element.src, url => urls.push(url.href))
-  if (element.href)
-    createURL(element.href, url => {
-      if (!urls.includes(url.href)) urls.push(url.href)
-    })
+  if (element.href) {
+    const url = element.href.trim()
+    if (url.length) return url
+  }
+
+  return ''
+}
+
+function extractURLsFromElementNodes(element) {
+  const urls = new Set()
+
+  if (element.src) createURLObject(element.src, url => urls.add(url.href))
+  if (element.href) createURLObject(element.href, url => urls.add(url.href))
 
   const elements = element.querySelectorAll('[src], [href]')
-  elements.forEach(el => {
-    createURL(el.src || el.href, url => {
-      if (!urls.includes(url.href)) urls.push(url.href)
-    })
-  })
+  elements.forEach(el => createURLObject(extractURLFromElement(el), u => urls.add(u.href)))
 
-  return urls
+  return [...urls]
 }
 
 export function validateURL(value, allowedHosts = []) {
-  let valid = false
-  createURLHost(value, host => (valid = !!allowedHosts.find(allowedHost => host.includes(allowedHost))))
-  return valid
+  const host = extractURLHost(value)
+  return host ? !!allowedHosts.find(allowedHost => host.includes(allowedHost)) : false
 }
 
 export function extractURLHosts(values) {
-  return values.reduce((hosts, value) => {
-    createURLHost(value, host => {
-      if (!hosts.includes(host)) hosts.push(host)
-    })
-    return hosts
-  }, [])
+  return [
+    ...values.reduce((hosts, value) => {
+      extractURLHost(value, host => hosts.add(host))
+      return hosts
+    }, new Set())
+  ]
 }
 
 // Extracts all URLs from an HTML element (all inclusive i.e. elements and text nodes)
@@ -89,8 +93,8 @@ export function extractURLHosts(values) {
 // @param {HTMLElement} element - HTML element
 // @returns {String[]} list of unique URLs
 //
-export function extractURLsFromElement(element) {
-  const elementURLs = extractURLsFromElements(element)
+export function extractURLs(element) {
+  const elementURLs = extractURLsFromElementNodes(element)
   const textNodeURLs = extractURLsFromTextNodes(element)
   const uniqueURLs = new Set([...elementURLs, ...textNodeURLs])
   return [...uniqueURLs]

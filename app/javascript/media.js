@@ -1,4 +1,4 @@
-import { createURL } from './urls'
+import { createURLObject } from './urls'
 
 const audioMediaTypes = {
   mp3: 'audio/mpeg', // MP3 audio format
@@ -91,7 +91,7 @@ export function isVideo(url) {
 export function getMediaType(value) {
   let url
 
-  createURL(value, u => (url = u))
+  url = createURLObject(value)
   if (!url) return null
 
   const index = url.pathname.lastIndexOf('.')

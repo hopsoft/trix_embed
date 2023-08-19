@@ -41,7 +41,6 @@ https://images.clickfunnels.com/cdn-cgi/image/width=550,fit=scale-down,f=auto,q=
 // prohibited media (tags & urls)
 // ===========================================================================================================
 
-
 <img src="https://media.cnn.com/api/v1/images/stellar/prod/230803134820-will-smith-men-in-black.jpg?c=16x9&q=h_438,w_780,c_fill" alt="will smith men in black" class="image__dam-img" onload="this.classList.remove('image__dam-img--loading')" onerror="imageLoadError(this)" height="1628" width="3000" loading="lazy" pinger-seen="true">
 
 <img class="homepage-hero-branding-rollout__media-image--desktop" alt="View of a HubSpot user's weekly email, calling, and meeting activity, a contact record, and a customer service report in their HubSpot CRM platform" src="https://www.hubspot.com/hubfs/EN%20Round%203%20Variant%201%20Desktop%20(2).webp">
@@ -59,3 +58,5 @@ https://hopsoft.io/@turbo-boost/commands/assets/turbo-boost-logo-dark-bg-0772356
 
 https://www.cnn.com/
 https://www.hubspot.com/
+https://www.clickfunnels.com
+https://www.voomly.com

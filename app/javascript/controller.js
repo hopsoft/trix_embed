@@ -1,5 +1,11 @@
 import { generateKey, encryptValues, decryptValues } from './encryption'
-import { extractURLsFromElement, validateURL } from './urls'
+import {
+  createURLObject,
+  createURLTextNodeTreeWalker,
+  extractURLs,
+  extractURLFromElement,
+  validateURL
+} from './urls'
 import { getMediaType, mediaTags } from './media'
 import Guard from './guard'
 import Store from './store'
@@ -48,9 +54,9 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
     async paste(event) {
       const { html, string, range } = event.paste
       let content = html || string || ''
-      const pastedTemplate = this.buildPastedTemplate(content)
+      const pastedTemplate = this.createTemplate(content)
       const pastedElement = pastedTemplate.content.firstElementChild
-      const pastedURLs = extractURLsFromElement(pastedElement)
+      const pastedURLs = extractURLs(pastedElement)
 
       // no URLs were pasted, let Trix handle it ...............................................................
       if (!pastedURLs.length) return
@@ -62,10 +68,10 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
 
       try {
         // Media URLs (images, videos, audio etc.)
-        const mediaURLs = pastedURLs.filter(url => getMediaType(url))
-        Array.from(pastedTemplate.content.firstElementChild.querySelectorAll('iframe')).forEach(frame => {
-          if (!mediaURLs.includes(frame.src)) mediaURLs.push(frame.src)
-        })
+        let mediaURLs = new Set(pastedURLs.filter(url => getMediaType(url)))
+        const iframes = [...pastedTemplate.content.firstElementChild.querySelectorAll('iframe')]
+        iframes.forEach(frame => mediaURLs.add(frame.src))
+        mediaURLs = [...mediaURLs]
         const validMediaURLs = mediaURLs.filter(url => validateURL(url, hosts))
         const invalidMediaURLs = mediaURLs.filter(url => !validMediaURLs.includes(url))
 
@@ -76,40 +82,29 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
 
         let urls
 
-        // 1. render invalid media urls ..........................................................................
+        // 1. render errors (i.e. invalid urls) ..............................................................
         urls = invalidMediaURLs
         if (urls.length) await this.insert(renderer.renderErrors(urls, hosts.sort()))
 
-        // 2. render invalid standard urls .......................................................................
-        urls = invalidStandardURLs
-        if (urls.length) {
-          await this.insert(renderer.renderHeader('Prohibited URLs'))
-          await this.insert(renderer.renderURLs(urls), { disposition: 'inline' })
-        }
-
-        // 3. render valid standard urls .........................................................................
-        urls = validStandardURLs
-        if (urls.length) {
-          if (pastedURLs.length > 1) await this.insert(renderer.renderHeader('Allowed URLs'))
-          await this.insert(renderer.renderLinks(validStandardURLs))
-        }
-
-        // 4. render valid media urls ............................................................................
+        // 2. render valid media urls (i.e. embeds) ..........................................................
         urls = validMediaURLs
         if (urls.length) {
-          if (pastedURLs.length > 1) await this.insert(renderer.renderHeader('Allowed Media Embeds'))
+          //if (pastedURLs.length > 1) await this.insert(renderer.renderHeader('Allowed Media Embeds'))
           await this.insert(renderer.renderEmbeds(urls))
         }
 
-        // exit early if there is only one valid URL and it is the same as the pasted content
-        if (pastedURLs.length === 1 && (validMediaURLs.length === 1 || validStandardURLs.length === 1)) return
+        // 3. exit early if there is only 1 URL and it's a valid media URL (i.e. a single embed) .............
+        if (pastedURLs.length === 1 && validMediaURLs.length === 1) return
 
-        // 5. render the pasted content as sanitized HTML ........................................................
-        const sanitizedPastedElement = this.sanitizePastedElement(pastedElement)
+        // 4. render the pasted content as sanitized HTML ....................................................
+        const sanitizedPastedElement = this.sanitizePastedElement(pastedElement, {
+          validMediaURLs,
+          validStandardURLs
+        })
         const sanitizedPastedContent = sanitizedPastedElement.innerHTML.trim()
         if (sanitizedPastedContent.length) {
-          await this.insert(renderer.renderHeader('Sanitized Pasted Content', sanitizedPastedContent))
-          this.editor.insertLineBreak()
+          //await this.insert(renderer.renderHeader('Sanitized Pasted Content', sanitizedPastedContent))
+          //this.editor.insertLineBreak()
           this.insert(sanitizedPastedContent, { disposition: 'inline' })
         }
       } catch (ex) {
@@ -117,27 +112,65 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
       }
     }
 
-    buildPastedTemplate(content) {
+    createTemplate(content) {
       const template = document.createElement('template')
       template.innerHTML = `<div>${content.trim()}</div>`
       return template
     }
 
-    sanitizePastedElement(element) {
+    sanitizePastedElement(element, options = { validMediaURLs: [], validStandardURLs: [] }) {
+      const { validMediaURLs, validStandardURLs } = options
       element = element.cloneNode(true)
 
+      const label = (el, options = { default: null }) => {
+        let value = el.title
+        if (value && value.length) return value
+
+        value = el.textContent.trim()
+        if (value && value.length) return value
+
+        return options.default
+      }
+
+      // sanitize media tags
       element.querySelectorAll(mediaTags.join(', ')).forEach(tag => {
-        const url = tag.src || tag.href || '?'
-        tag.outerHTML = `<div>MEDIA: ${url}</div>`
+        const url = extractURLFromElement(tag)
+        if (url.length) {
+          tag.outerHTML = validMediaURLs.includes(url)
+            ? `<ins title="Allowed Embed">${label(tag, { default: url })}</ins>`
+            : `<del title="Prohibited Embed">${label(tag, { default: url })}</del>`
+        } else tag.remove()
       })
 
+      // sanitize anchor tags
       element.querySelectorAll('a').forEach(tag => {
-        const url = tag.href || '?'
-        tag.outerHTML = `<div>LINK: ${url}</div>`
+        const url = tag.href
+        if (!validStandardURLs.includes(url))
+          tag.outerHTML = `<del title="Prohibited Link: ${url}">${label(tag, { default: url })}</del>`
       })
 
-      element.innerHTML = element.innerHTML.replaceAll(/(\r\n|\n|\r)+/g, '<br>')
+      // sanitize text nodes
+      const replacements = {}
+      const walker = createURLTextNodeTreeWalker(element)
+      let node
+      while ((node = walker.nextNode())) {
+        let content = node.nodeValue
+        const words = content.split(/\s+/)
+        const matches = words.filter(word => word.startsWith('http'))
 
+        matches.forEach(match => {
+          const url = createURLObject(match)?.href
+          if (validStandardURLs.includes(url) || validStandardURLs.includes(url)) {
+            replacements[match] = `<a title="Allowed Link" href="${url}">${url}</a>`
+          } else {
+            replacements[match] = `<del title="Prohibited Link">${url}</del>`
+          }
+        })
+      }
+
+      let html = element.innerHTML.replaceAll(/(\n|\r|\f|\v)+/g, '<br>')
+      for (const [url, replacement] of Object.entries(replacements)) html = html.replaceAll(url, replacement)
+      element.innerHTML = html
       return element
     }
 

@@ -1,4 +1,4 @@
-import { createURL, extractURLHosts } from './urls'
+import { createURLObject, extractURLHosts } from './urls'
 import { isImage, getMediaType } from './media'
 import { getTemplate } from './templates'
 
@@ -24,7 +24,7 @@ export default class Renderer {
   }
 
   sanitize(element) {
-    const all = [element].concat(Array.from(element.querySelectorAll('*')))
+    const all = [element].concat([...element.querySelectorAll('*')])
     all.forEach(el => {
       if (ALLOWED_TAGS.includes(el.tagName.toLowerCase())) {
         ;[...el.attributes].forEach(attr => {
@@ -68,13 +68,7 @@ export default class Renderer {
   }
 
   renderURLs(urls = ['https://example.com', 'https://test.com']) {
-    urls = urls
-      .filter(url => {
-        let ok = false
-        createURL(url, u => (ok = true))
-        return ok
-      })
-      .sort()
+    urls = urls.filter(url => createURLObject(url)).sort()
 
     if (!urls.length) return
     return `<ul>${urls.map(url => `<li>${url}</li>`).join('')}</ul><br>`
@@ -87,13 +81,7 @@ export default class Renderer {
   // @returns {String[]} list of individual HTML links
   //
   renderLinks(urls = ['https://example.com', 'https://test.com']) {
-    urls = urls
-      .filter(url => {
-        let ok = false
-        createURL(url, u => (ok = true))
-        return ok
-      })
-      .sort()
+    urls = urls.filter(url => createURLObject(url)).sort()
 
     if (!urls.length) return
     const links = urls.map(url => `<li><a href='${url}'>${url}</a></li>`)
