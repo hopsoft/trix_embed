@@ -118,59 +118,72 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
       return template
     }
 
+    extractLabelFromElement(el, options = { default: null }) {
+      let value = el.title
+      if (value && value.length) return value
+
+      value = el.textContent.trim()
+      if (value && value.length) return value
+
+      return options.default
+    }
+
     sanitizePastedElement(element, options = { validMediaURLs: [], validStandardURLs: [] }) {
       const { validMediaURLs, validStandardURLs } = options
       element = element.cloneNode(true)
 
-      const label = (el, options = { default: null }) => {
-        let value = el.title
-        if (value && value.length) return value
-
-        value = el.textContent.trim()
-        if (value && value.length) return value
-
-        return options.default
-      }
-
       // sanitize media tags
-      element.querySelectorAll(mediaTags.join(', ')).forEach(tag => {
-        const url = extractURLFromElement(tag)
-        if (url.length) {
-          tag.outerHTML = validMediaURLs.includes(url)
-            ? `<ins title="Allowed Embed">${label(tag, { default: url })}</ins>`
-            : `<del title="Prohibited Embed">${label(tag, { default: url })}</del>`
-        } else tag.remove()
+      element.querySelectorAll(mediaTags.join(', ')).forEach(el => {
+        const url = extractURLFromElement(el)
+        const label = this.extractLabelFromElement(el, { default: url })
+        const outerHTML = validMediaURLs.includes(url)
+          ? `<ins allow="true" caption="Allowed Embed">${label}</ins>`
+          : `<del allow="false" caption="Prohibited Embed">${label}</del>`
+        el.outerHTML = outerHTML
       })
 
       // sanitize anchor tags
-      element.querySelectorAll('a').forEach(tag => {
-        const url = tag.href
-        if (!validStandardURLs.includes(url))
-          tag.outerHTML = `<del title="Prohibited Link: ${url}">${label(tag, { default: url })}</del>`
+      element.querySelectorAll('a').forEach(el => {
+        const url = extractURLFromElement(el)
+        const label = this.extractLabelFromElement(el, { default: url })
+        const outerHTML = validStandardURLs.includes(url)
+          ? `<a allow="true" caption="Allowed Link" href="${url}">${label}</a>`
+          : `<del allow="false" caption="Prohibited Link: ${url}">${label}</del>`
+        el.outerHTML = outerHTML
       })
 
       // sanitize text nodes
-      const replacements = {}
       const walker = createURLTextNodeTreeWalker(element)
-      let node
-      while ((node = walker.nextNode())) {
-        let content = node.nodeValue
-        const words = content.split(/\s+/)
+      const textNodes = []
+      let textNode
+      while ((textNode = walker.nextNode())) {
+        textNode.replacements = textNode.replacements || new Set()
+        textNodes.push(textNode)
+
+        const words = textNode.nodeValue.split(/\s+/)
         const matches = words.filter(word => word.startsWith('http'))
 
         matches.forEach(match => {
           const url = createURLObject(match)?.href
-          if (validStandardURLs.includes(url) || validStandardURLs.includes(url)) {
-            replacements[match] = `<a title="Allowed Link" href="${url}">${url}</a>`
-          } else {
-            replacements[match] = `<del title="Prohibited Link">${url}</del>`
-          }
+          const replacement =
+            validStandardURLs.includes(url) || validStandardURLs.includes(url)
+              ? `<a allow="true" caption="Allowed Link" href="${url}">${url}</a><br>`
+              : `<del allow="false" caption="Prohibited Link">${url}</del><br>`
+          textNode.replacements.add({ match, replacement })
         })
       }
+      textNodes.forEach(node => {
+        if (!node.replacements.size) return
+        let content = node.nodeValue
+        // sort by length to replace the most specific matches first
+        const replacements = [...node.replacements].sort((a, b) => b.match.length - a.match.length)
+        replacements.forEach(entry => (content = content.replaceAll(entry.match, entry.replacement)))
+        node.replaceWith(this.createTemplate(content).content.firstElementChild)
+      })
 
-      let html = element.innerHTML.replaceAll(/(\n|\r|\f|\v)+/g, '<br>')
-      for (const [url, replacement] of Object.entries(replacements)) html = html.replaceAll(url, replacement)
-      element.innerHTML = html
+      // sanitize newlines (best effort)
+      element.innerHTML.replaceAll(/(\n|\r|\f|\v)+/g, '<br>')
+
       return element
     }
 
