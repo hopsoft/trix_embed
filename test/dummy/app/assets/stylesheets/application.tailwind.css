@@ -38,11 +38,17 @@ form .trix-content figure:not(:has(iframe)):not(:has(img)):not(:has(a)) {
   @apply px-1 bg-green-200 !important;
 }
 .trix-content del {
-  @apply px-1 bg-red-200 line-through;
+  @apply pr-1 bg-red-200 text-red-700 no-underline;
 }
-.trix-content del:before,
-.trix-content ins:before {
-  content: attr(cite);
+.trix-content del::before {
+  @apply mr-1 px-1 bg-red-400 text-red-50 font-bold font-mono;
+  content: 'PROHIBITED';
+}
+.trix-content ins {
+  @apply px-1 bg-green-200 text-green-700 no-underline;
+}
+.trix-content ins::before {
+  content: 'EMBEDDED';
 }
 
 /*

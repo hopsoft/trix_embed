@@ -55,9 +55,6 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
       const pastedElement = this.createTemplateElement(content)
       const pastedURLs = extractURLs(pastedElement)
 
-      console.log('pastedElement', pastedElement)
-      console.log('pastedURLs', pastedURLs)
-
       // no URLs were pasted, let Trix handle it ...............................................................
       if (!pastedURLs.length) return
 
@@ -280,12 +277,43 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
     }
 
     get reservedDomains() {
-      return ['example.com', 'test.com', 'invalid.com', 'example.cat', 'nic.example', 'example.co.uk']
+      return [
+        'embed.example',
+        'embed.invalid',
+        'embed.local',
+        'embed.localhost',
+        'embed.test',
+        'trix.embed.example',
+        'trix.embed.invalid',
+        'trix.embed.local',
+        'trix.embed.localhost',
+        'trix.embed.test',
+        'trix.example',
+        'trix.invalid',
+        'trix.local',
+        'trix.localhost',
+        'trix.test',
+        'www.embed.example',
+        'www.embed.invalid',
+        'www.embed.local',
+        'www.embed.localhost',
+        'www.embed.test',
+        'www.trix.example',
+        'www.trix.invalid',
+        'www.trix.local',
+        'www.trix.localhost',
+        'www.trix.test'
+      ]
     }
 
     async rememberConfig() {
       const key = await generateKey()
-      const fakes = await encryptValues(key, this.reservedDomains)
+
+      let fakes = new Set()
+      while (fakes.size < 3)
+        fakes.add(this.reservedDomains[Math.floor(Math.random() * this.reservedDomains.length)])
+      fakes = await encryptValues(key, [...fakes])
+
       const hosts = await encryptValues(key, this.hostsValue)
 
       this.store.write('key', JSON.stringify([fakes[0], fakes[1], key, fakes[2]]))
