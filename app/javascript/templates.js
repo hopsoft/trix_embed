@@ -1,11 +1,10 @@
 const defaults = {
-  header: `<div><h1></h1><hr></div>`,
   iframe: `<div><iframe></iframe></div>`,
   image: `<div><img></img></div>`,
 
-  error: `
+  warning: `
     <div>
-      <h1>Copy/Paste Info</h1>
+      <h1>Copy/Paste Warning</h1>
       <hr>
       <h3>The pasted content includes media from unsupported hosts.</h3>
       <h2>Prohibited Hosts</h2>
@@ -19,7 +18,7 @@ const defaults = {
     </div>
   `,
 
-  exception: `
+  error: `
     <div style='background-color:lightyellow; color:red; border:solid 1px red; padding:20px;'>
       <h1>Unhandled Exception!</h1>
       <p>Show a programmer the message below.</p>

@@ -38,7 +38,7 @@ export default class Renderer {
   }
 
   initializeTempates() {
-    const templates = ['error', 'exception', 'header', 'iframe', 'image']
+    const templates = ['error', 'iframe', 'image', 'warning']
     templates.forEach(name => this.initializeTemplate(name))
   }
 
@@ -53,39 +53,6 @@ export default class Renderer {
 
     this[property] = template || getTemplate(name)
     this.controller[stimulusName] = null
-  }
-
-  // Renders an embed header
-  //
-  // @param {String} html - HTML
-  // @returns {String} HTML
-  //
-  renderHeader(html) {
-    const header = this.headerTemplate.content.firstElementChild.cloneNode(true)
-    const h1 = header.tagName.match(/h1/i) ? header : header.querySelector('h1')
-    h1.innerHTML = html
-    return header.outerHTML
-  }
-
-  renderURLs(urls = ['https://example.com', 'https://test.com']) {
-    urls = urls.filter(url => createURLObject(url)).sort()
-
-    if (!urls.length) return
-    return `<ul>${urls.map(url => `<li>${url}</li>`).join('')}</ul><br>`
-  }
-
-  // TODO: Add templates for links
-  // Renders a list of URLs as a list of HTML links i.e. anchor tags <a>
-  //
-  // @param {String[]} urls - list of URLs
-  // @returns {String[]} list of individual HTML links
-  //
-  renderLinks(urls = ['https://example.com', 'https://test.com']) {
-    urls = urls.filter(url => createURLObject(url)).sort()
-
-    if (!urls.length) return
-    const links = urls.map(url => `<li><a href='${url}'>${url}</a></li>`)
-    return `<ul>${links.join('')}</ul><br>`
   }
 
   // TOOO: add support for audio and video
@@ -126,10 +93,10 @@ export default class Renderer {
   // @param {String[]} allowedHosts - list of allowed hosts
   // @returns {String} HTML
   //
-  renderErrors(urls = ['https://example.com', 'https://test.com'], allowedHosts = []) {
+  renderWarnings(urls = ['https://example.com', 'https://test.com'], allowedHosts = []) {
     if (!urls?.length) return
 
-    const element = this.errorTemplate.content.firstElementChild.cloneNode(true)
+    const element = this.warningTemplate.content.firstElementChild.cloneNode(true)
     const prohibitedHostsElement = element.querySelector('[data-list="prohibited-hosts"]')
     const allowedHostsElement = element.querySelector('[data-list="allowed-hosts"]')
 
@@ -144,15 +111,15 @@ export default class Renderer {
     return element.outerHTML
   }
 
-  // Renders an exception
+  // Renders a JavaScript error
   //
-  // @param {String[]} ex - The exception
+  // @param {String[]} ex - The error or exception
   // @returns {String} HTML
   //
-  renderException(ex) {
-    const element = this.exceptionTemplate.content.firstElementChild.cloneNode(true)
+  renderError() {
+    const element = this.errorTemplate.content.firstElementChild.cloneNode(true)
     const code = element.querySelector('code')
-    code.innerHTML = ex.message
+    code.innerHTML = error.message
     return element.outerHTML
   }
 }

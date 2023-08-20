@@ -21,9 +21,7 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
   return class extends Controller {
     static values = {
       // templates
-      validTemplate: String, // dom id of template to use for valid embeds
-      errorTemplate: String, // dom id of template to use for invalid embeds
-      headerTemplate: String, // dom id of template to use for embed headers
+      warningTemplate: String, // dom id of template to use when invalid embeds are detected
       iframeTemplate: String, // dom id of template to use for iframe embeds
       imageTemplate: String, // dom id of template to use for image embeds
 
@@ -54,9 +52,11 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
     async paste(event) {
       const { html, string, range } = event.paste
       let content = html || string || ''
-      const pastedTemplate = this.createTemplate(content)
-      const pastedElement = pastedTemplate.content.firstElementChild
+      const pastedElement = this.createTemplateElement(content)
       const pastedURLs = extractURLs(pastedElement)
+
+      console.log('pastedElement', pastedElement)
+      console.log('pastedURLs', pastedURLs)
 
       // no URLs were pasted, let Trix handle it ...............................................................
       if (!pastedURLs.length) return
@@ -69,7 +69,7 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
       try {
         // Media URLs (images, videos, audio etc.)
         let mediaURLs = new Set(pastedURLs.filter(url => getMediaType(url)))
-        const iframes = [...pastedTemplate.content.firstElementChild.querySelectorAll('iframe')]
+        const iframes = [...pastedElement.querySelectorAll('iframe')]
         iframes.forEach(frame => mediaURLs.add(frame.src))
         mediaURLs = [...mediaURLs]
         const validMediaURLs = mediaURLs.filter(url => validateURL(url, hosts))
@@ -84,12 +84,11 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
 
         // 1. render errors (i.e. invalid urls) ..............................................................
         urls = invalidMediaURLs
-        if (urls.length) await this.insert(renderer.renderErrors(urls, hosts.sort()))
+        if (urls.length) await this.insert(renderer.renderWarnings(urls, hosts.sort()))
 
         // 2. render valid media urls (i.e. embeds) ..........................................................
         urls = validMediaURLs
         if (urls.length) {
-          //if (pastedURLs.length > 1) await this.insert(renderer.renderHeader('Allowed Media Embeds'))
           await this.insert(renderer.renderEmbeds(urls))
         }
 
@@ -103,19 +102,17 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
         })
         const sanitizedPastedContent = sanitizedPastedElement.innerHTML.trim()
         if (sanitizedPastedContent.length) {
-          //await this.insert(renderer.renderHeader('Sanitized Pasted Content', sanitizedPastedContent))
-          //this.editor.insertLineBreak()
           this.insert(sanitizedPastedContent, { disposition: 'inline' })
         }
-      } catch (ex) {
-        this.insert(renderer.renderException(ex))
+      } catch (e) {
+        this.insert(renderer.renderError(e))
       }
     }
 
-    createTemplate(content) {
+    createTemplateElement(content) {
       const template = document.createElement('template')
       template.innerHTML = `<div>${content.trim()}</div>`
-      return template
+      return template.content.firstElementChild
     }
 
     extractLabelFromElement(el, options = { default: null }) {
@@ -136,20 +133,18 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
       element.querySelectorAll(mediaTags.join(', ')).forEach(el => {
         const url = extractURLFromElement(el)
         const label = this.extractLabelFromElement(el, { default: url })
-        const outerHTML = validMediaURLs.includes(url)
-          ? `<ins allow="true" caption="Allowed Embed">${label}</ins>`
-          : `<del allow="false" caption="Prohibited Embed">${label}</del>`
-        el.outerHTML = outerHTML
+        const replacement = validMediaURLs.includes(url) ? `<ins>${label}</ins>` : `<del>${label}</del>`
+        el.replaceWith(this.createTemplateElement(replacement))
       })
 
       // sanitize anchor tags
       element.querySelectorAll('a').forEach(el => {
         const url = extractURLFromElement(el)
         const label = this.extractLabelFromElement(el, { default: url })
-        const outerHTML = validStandardURLs.includes(url)
-          ? `<a allow="true" caption="Allowed Link" href="${url}">${label}</a>`
-          : `<del allow="false" caption="Prohibited Link: ${url}">${label}</del>`
-        el.outerHTML = outerHTML
+        const replacement = validStandardURLs.includes(url)
+          ? `<a href="${url}">${label}</a>`
+          : `<del>${label}</del>`
+        el.replaceWith(this.createTemplateElement(replacement))
       })
 
       // sanitize text nodes
@@ -167,8 +162,8 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
           const url = createURLObject(match)?.href
           const replacement =
             validStandardURLs.includes(url) || validStandardURLs.includes(url)
-              ? `<a allow="true" caption="Allowed Link" href="${url}">${url}</a><br>`
-              : `<del allow="false" caption="Prohibited Link">${url}</del><br>`
+              ? `<a href="${url}">${url}</a><br>`
+              : `<del>${url}</del><br>`
           textNode.replacements.add({ match, replacement })
         })
       }
@@ -178,7 +173,7 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
         // sort by length to replace the most specific matches first
         const replacements = [...node.replacements].sort((a, b) => b.match.length - a.match.length)
         replacements.forEach(entry => (content = content.replaceAll(entry.match, entry.replacement)))
-        node.replaceWith(this.createTemplate(content).content.firstElementChild)
+        node.replaceWith(this.createTemplateElement(content))
       })
 
       // sanitize newlines (best effort)

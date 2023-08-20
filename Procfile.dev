@@ -1,2 +1,3 @@
-web: rerun --pattern 'app/**/*.{js,rb}' --ignore 'app/assets/builds/**/*.js' -- 'yarn build:js && cd test/dummy && lsof -t -i tcp:3000 | xargs kill -TERM && bin/rails server -p 3000 --log-to-stdout'
-css: cd test/dummy && bin/rails tailwindcss:watch
+esbuild: rerun --exit --pattern 'app/javascript/**/*.js' --ignore 'app/javascript/metadata.js' -- 'yarn build:js'
+tailwind: cd test/dummy && bin/rails tailwindcss:watch
+web: rerun --dir 'app/assets/builds,lib' -- 'cd test/dummy && lsof -t -i tcp:3000 | xargs kill -TERM && bin/rails server -p 3000 --log-to-stdout'
