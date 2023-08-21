@@ -34,28 +34,6 @@ form .trix-content figure:not(:has(iframe)):not(:has(img)):not(:has(a)) {
 .trix-content figure hr {
   @apply border-dotted border-rose-300;
 }
-.trix-content ins {
-  @apply px-1 bg-green-200 !important;
-}
 .trix-content del {
-  @apply pr-1 bg-red-200 text-red-700 no-underline;
+  @apply pr-1 bg-fuchsia-100 text-fuchsia-700 no-underline;
 }
-.trix-content del::before {
-  @apply mr-1 px-1 bg-red-400 text-red-50 font-bold font-mono;
-  content: 'PROHIBITED';
-}
-.trix-content ins {
-  @apply px-1 bg-green-200 text-green-700 no-underline;
-}
-.trix-content ins::before {
-  content: 'EMBEDDED';
-}
-
-/*
-.trix-content ins:before {
-  content: '+ ';
-}
-.trix-content del:before {
-  content: '- ';
-}
-*/

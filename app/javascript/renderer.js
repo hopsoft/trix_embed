@@ -1,10 +1,10 @@
 import { createURLObject, extractURLHosts } from './urls'
-import { isImage, getMediaType } from './media'
+import { isImage, getMediaType, trixAttachmentTag } from './media'
 import { getTemplate } from './templates'
 
 // puts TrixEmbed::Attachment::ALLOWED_TAGS.sort.join(" ")
 const ALLOWED_TAGS =
-  'a abbr acronym action-text-attachment address b big blockquote br cite code dd del dfn div dl dt em figcaption figure h1 h2 h3 h4 h5 h6 hr i iframe img ins kbd li ol p pre samp small span strong sub sup time tt ul var'.split(
+  `${trixAttachmentTag} a abbr acronym address b big blockquote br cite code dd del dfn div dl dt em figcaption figure h1 h2 h3 h4 h5 h6 hr i iframe img ins kbd li ol p pre samp small span strong sub sup time tt ul var`.split(
     ' '
   )
 
@@ -113,10 +113,10 @@ export default class Renderer {
 
   // Renders a JavaScript error
   //
-  // @param {String[]} ex - The error or exception
+  // @param {Error} error - The error or exception
   // @returns {String} HTML
   //
-  renderError() {
+  renderError(error) {
     const element = this.errorTemplate.content.firstElementChild.cloneNode(true)
     const code = element.querySelector('code')
     code.innerHTML = error.message

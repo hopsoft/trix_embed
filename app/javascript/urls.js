@@ -29,7 +29,6 @@ function extractURLHost(value, callback = host => {}) {
 
 export function createURLTextNodeTreeWalker(element) {
   return document.createTreeWalker(element, NodeFilter.SHOW_TEXT, node => {
-    //console.log('NODE', !!node.nodeValue.match(/http/gi), node.nodeValue)
     return node.nodeValue.match(/http/gi) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
   })
 }

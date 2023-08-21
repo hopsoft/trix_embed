@@ -74,6 +74,9 @@ const tagsWithSrcAttribute = [
   'use' // SVG: Reuse shapes from other documents
 ]
 
+// TODO: move to schema.js
+export const trixAttachmentTag = 'action-text-attachment'
+
 export const mediaTags = tagsWithHrefAttribute.concat(tagsWithSrcAttribute)
 
 export function isAudio(url) {
