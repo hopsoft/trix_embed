@@ -30,7 +30,8 @@ export default {
   license: '${license}',
   repository: '${repository}',
   version: '${version}'
-}`,
+}
+`,
     e => {
       if (e) console.error('Failed to write metadata file!', e)
     }
