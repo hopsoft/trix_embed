@@ -1,18 +1,92 @@
 import { createURLObject, extractURLHosts } from './urls'
 import { isImage, getMediaType, trixAttachmentTag } from './media'
-import { getTemplate } from './templates'
+import templates from './templates'
 
-// puts TrixEmbed::Attachment::ALLOWED_TAGS.sort.join(" ")
-const ALLOWED_TAGS =
-  `${trixAttachmentTag} a abbr acronym address b big blockquote br cite code dd del dfn div dl dt em figcaption figure h1 h2 h3 h4 h5 h6 hr i iframe img ins kbd li ol p pre samp small span strong sub sup time tt ul var`.split(
-    ' '
-  )
+// TrixEmbed::Attachment::ALLOWED_TAGS
+const ALLOWED_TAGS = [
+  trixAttachmentTag,
+  'a',
+  'abbr',
+  'acronym',
+  'address',
+  'b',
+  'big',
+  'blockquote',
+  'br',
+  'cite',
+  'code',
+  'dd',
+  'del',
+  'dfn',
+  'div',
+  'dl',
+  'dt',
+  'em',
+  'figcaption',
+  'figure',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'hr',
+  'i',
+  'iframe',
+  'img',
+  'ins',
+  'kbd',
+  'li',
+  'ol',
+  'p',
+  'pre',
+  'samp',
+  'small',
+  'span',
+  'strong',
+  'sub',
+  'sup',
+  'time',
+  'tt',
+  'ul',
+  'var'
+]
 
-// puts TrixEmbed::Attachment::ALLOWED_ATTRIBUTES.sort.join(" ")
-const ALLOWED_ATTRIBUTES =
-  'abbr allow allowfullscreen allowpaymentrequest alt caption cite content-type credentialless csp datetime filename filesize height href lang loading name presentation previewable referrerpolicy sandbox sgid src srcdoc title url width xml:lang'.split(
-    ' '
-  )
+// TrixEmbed::Attachment::ALLOWED_ATTRIBUTES
+const ALLOWED_ATTRIBUTES = [
+  'abbr',
+  'allow',
+  'allowfullscreen',
+  'allowpaymentrequest',
+  'alt',
+  'caption',
+  'cite',
+  'content-type',
+  'credentialless',
+  'csp',
+  'data-trix-embed',
+  'data-trix-embed-error',
+  'data-trix-embed-warning',
+  'datetime',
+  'filename',
+  'filesize',
+  'height',
+  'href',
+  'lang',
+  'loading',
+  'name',
+  'presentation',
+  'previewable',
+  'referrerpolicy',
+  'sandbox',
+  'sgid',
+  'src',
+  'srcdoc',
+  'title',
+  'url',
+  'width',
+  'xml:lang'
+]
 
 export default class Renderer {
   // Constructs a new Renderer instance
@@ -23,7 +97,10 @@ export default class Renderer {
     this.initializeTempates()
   }
 
-  sanitize(element) {
+  sanitize(html) {
+    const template = document.createElement('template')
+    template.innerHTML = `<div>${html}</div>`
+    const element = template.content.firstElementChild
     const all = [element].concat([...element.querySelectorAll('*')])
     all.forEach(el => {
       if (ALLOWED_TAGS.includes(el.tagName.toLowerCase())) {
@@ -34,7 +111,7 @@ export default class Renderer {
         el.remove()
       }
     })
-    return element
+    return element.innerHTML
   }
 
   initializeTempates() {
@@ -43,16 +120,21 @@ export default class Renderer {
   }
 
   initializeTemplate(name) {
+    const property = `${name}Template`
     let template
 
-    const property = `${name}Template`
-    const stimulusName = `${property}Value`
+    // attempt to find custom template
+    const key = `${property}Value`
+    const id = this.controller[key]
+    if (id) template = document.getElementById(id)?.innerHTML
+    this.controller[key] = null
 
-    if (this.controller[`has${stimulusName.charAt(0).toUpperCase() + stimulusName.slice(1)}`])
-      template = document.getElementById(this.controller[stimulusName])
+    template = template || templates[name]
+    this[property] = template.trim()
+  }
 
-    this[property] = template || getTemplate(name)
-    this.controller[stimulusName] = null
+  render(template, params = {}) {
+    return template.replace(/{{(.*?)}}/g, (_, key) => key.split('.').reduce((obj, k) => obj[k], params))
   }
 
   // TOOO: add support for audio and video
@@ -62,19 +144,10 @@ export default class Renderer {
   // @returns {String} HTML
   //
   renderEmbed(url = 'https://example.com') {
-    let embed
-
-    if (isImage(url)) {
-      embed = this.imageTemplate.content.firstElementChild.cloneNode(true)
-      const img = embed.tagName.match(/img/i) ? embed : embed.querySelector('img')
-      img.src = url
-    } else {
-      embed = this.iframeTemplate.content.firstElementChild.cloneNode(true)
-      const iframe = embed.tagName.match(/iframe/i) ? embed : embed.querySelector('iframe')
-      iframe.src = url
-    }
-
-    return this.sanitize(embed).outerHTML
+    const html = isImage(url)
+      ? this.render(this.imageTemplate, { src: url })
+      : this.render(this.iframeTemplate, { src: url })
+    return this.sanitize(html)
   }
 
   // Renders a list of URLs as HTML embeds i.e. iframes or media tags (img, video, audio etc.)
@@ -96,19 +169,24 @@ export default class Renderer {
   renderWarnings(urls = ['https://example.com', 'https://test.com'], allowedHosts = []) {
     if (!urls?.length) return
 
-    const element = this.warningTemplate.content.firstElementChild.cloneNode(true)
-    const prohibitedHostsElement = element.querySelector('[data-list="prohibited-hosts"]')
-    const allowedHostsElement = element.querySelector('[data-list="allowed-hosts"]')
+    const hosts = extractURLHosts(urls).sort()
 
-    if (prohibitedHostsElement) {
-      const hosts = extractURLHosts(urls).sort()
-      if (hosts.length) prohibitedHostsElement.innerHTML = hosts.map(host => `<li>${host}</li>`).join('')
-    }
-
-    if (allowedHostsElement && allowedHosts.length)
-      allowedHostsElement.innerHTML = allowedHosts.map(host => `<li>${host}</li>`).join('')
-
-    return element.outerHTML
+    return this.render(this.warningTemplate, {
+      header: 'Copy/Paste Warning',
+      subheader: 'The pasted content includes media from unsupported hosts.',
+      prohibited: {
+        header: 'Prohibited Hosts',
+        hosts: hosts.length
+          ? hosts.map(host => `<li>${host}</li>`).join('')
+          : '<li>Media is only supported from allowed hosts.</li>'
+      },
+      allowed: {
+        header: 'Allowed Hosts',
+        hosts: allowedHosts.length
+          ? allowedHosts.map(host => `<li>${host}</li>`).join('')
+          : '<li>Allowed hosts not configured.</li>'
+      }
+    })
   }
 
   // Renders a JavaScript error
@@ -117,9 +195,10 @@ export default class Renderer {
   // @returns {String} HTML
   //
   renderError(error) {
-    const element = this.errorTemplate.content.firstElementChild.cloneNode(true)
-    const code = element.querySelector('code')
-    code.innerHTML = error.message
-    return element.outerHTML
+    return this.render(this.errorTemplate, {
+      header: 'Unhandled Exception!',
+      subheader: 'Report this problem to a software engineer.',
+      error: error
+    })
   }
 }

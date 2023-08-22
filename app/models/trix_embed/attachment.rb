@@ -14,6 +14,9 @@ module TrixEmbed
         allowpaymentrequest
         credentialless
         csp
+        data-trix-embed
+        data-trix-embed-error
+        data-trix-embed-warning
         loading
         referrerpolicy
         sandbox

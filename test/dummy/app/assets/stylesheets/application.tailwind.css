@@ -14,46 +14,76 @@
 
 @import 'actiontext.css';
 
-/* anchor tags / links */
-.trix-content a {
+/* trix embed ***********************************************************************************************/
+.trix-content figure:has([data-trix-embed]) {
+  @apply block my-2 p-2;
+}
+.trix-content figure:has([data-trix-embed]) figcaption {
+  display: none;
+}
+form .trix-content figure:has([data-trix-embed]) {
+  @apply border-indigo-500 outline-indigo-100 border outline outline-2;
+}
+form .trix-content figure[data-trix-mutable=true]:has([data-trix-embed]) {
+  @apply outline-4 border-indigo-700 outline-indigo-200;
+}
+.trix-content figure [data-trix-embed] h1 {
+  @apply mb-4 text-3xl font-bold;
+}
+.trix-content figure [data-trix-embed] h2 {
+  @apply mt-3 text-2xl font-bold;
+}
+.trix-content figure [data-trix-embed] h3 {
+  @apply text-xl font-normal;
+}
+.trix-content figure [data-trix-embed] pre {
+  @apply bg-gray-600 text-white p-4;
+}
+.trix-content figure [data-trix-embed]:has(iframe) {
+  @apply w-full aspect-w-16 aspect-h-9;
+}
+.trix-content figure [data-trix-embed] iframe {
+  @apply w-full h-full;
+}
+.trix-content figure [data-trix-embed] img {
+  @apply bg-gray-100 shadow-none !important;
+}
+
+/* anchor tags **********************************************************************************************/
+.trix-content a[data-trix-embed] {
   @apply underline underline-offset-2 text-blue-600;
-}
-
-/* form attachment styling */
-form .trix-content figure:has(iframe),
-form .trix-content figure:has(img) {
-  @apply my-2;
-}
-form .trix-content figure:has(h1),
-form .trix-content figure:has(iframe),
-form .trix-content figure:has(img) {
-  @apply block p-1 border border-fuchsia-500 outline outline-2 outline-fuchsia-100;
-}
-form .trix-content figure[data-trix-mutable=true]:has(iframe),
-form .trix-content figure[data-trix-mutable=true]:has(img) {
-  @apply border-fuchsia-700  outline-fuchsia-200 outline-4;
-}
-
-/* Error messages */
-.trix-content figure:has(h1):has(ul) {
-  @apply block my-1 p-4 bg-rose-50 border border-rose-500 outline outline-2 outline-rose-100;
-}
-.trix-content figure[data-trix-mutable=true]:has(h1):has(ul) {
-  @apply border-rose-700  outline-rose-200 outline-4;
-}
-.trix-content figure:has(h1):has(ul) h1 {
-  @apply my-4 text-3xl font-bold text-rose-500;
-}
-.trix-content figure:has(h1):has(ul) h2 {
-  @apply my-3 text-2xl font-bold;
-}
-.trix-content figure:has(h1):has(ul) h3 {
-  @apply mt-3 mb-6 text-xl font-normal;
-}
-.trix-content figure:has(h1):has(ul) hr {
-  @apply border-dotted border-rose-300;
 }
 
 .trix-content del {
   @apply pr-1 bg-fuchsia-100 text-fuchsia-700 no-underline;
+}
+
+/* trix embed warnings **************************************************************************************/
+.trix-content figure:has([data-trix-embed][data-trix-embed-warning]) {
+  @apply border-rose-500 outline-rose-100;
+}
+.trix-content figure[data-trix-mutable=true]:has([data-trix-embed][data-trix-embed-warning]) {
+  @apply border-rose-700 outline-rose-200;
+}
+.trix-content figure [data-trix-embed-warning] h1 {
+  @apply text-rose-600;
+}
+.trix-content figure [data-trix-embed-warning] > h2:first-of-type,
+.trix-content figure [data-trix-embed-warning] > ul:first-of-type {
+  @apply text-rose-600;
+}
+.trix-content figure [data-trix-embed-warning] > h2:last-of-type,
+.trix-content figure [data-trix-embed-warning] > ul:last-of-type {
+  @apply text-green-600;
+}
+
+/* trix embed errors ****************************************************************************************/
+.trix-content figure:has([data-trix-embed][data-trix-embed-error]) {
+  @apply bg-yellow-50 border-red-500 outline-red-100;
+}
+.trix-content figure[data-trix-mutable=true]:has([data-trix-embed][data-trix-embed-error]) {
+  @apply border-red-700 outline-red-200;
+}
+.trix-content figure [data-trix-embed-error] h1 {
+  @apply text-red-600;
 }

@@ -85,14 +85,12 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
 
         // 2. render valid media urls (i.e. embeds) ..........................................................
         urls = validMediaURLs
-        if (urls.length) {
-          await this.insert(renderer.renderEmbeds(urls))
-        }
+        if (urls.length) await this.insert(renderer.renderEmbeds(urls))
 
         // 3. exit early if there is only 1 URL and it's a valid media URL (i.e. a single embed) .............
         if (pastedURLs.length === 1 && validMediaURLs.length === 1) return
 
-        // 4. render the pasted content as sanitized HTML ....................................................
+        // 4. render the pasted content as  HTML ....................................................
         const sanitizedPastedElement = this.sanitizePastedElement(pastedElement, {
           validMediaURLs,
           validStandardURLs
@@ -171,7 +169,7 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
         const label = this.extractLabelFromElement(el, { default: url })
 
         const replacement = validMediaURLs.includes(url)
-          ? `<del><strong>ALLOWED MEDIA (embedded above):</strong> ${label}</del>`
+          ? `<samp>ALLOWED MEDIA (embedded above): ${label}</samp>`
           : `<del><strong>PROHIBITED MEDIA:</strong> ${label}</del>`
 
         el.replaceWith(this.createTemplateElement(replacement))
@@ -199,7 +197,7 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
         setTimeout(() => {
           const attachment = new Trix.Attachment({ content, contentType: this.attachmentContentType })
           this.editor.insertAttachment(attachment)
-          this.insertNewlines(2).then(resolve)
+          this.insertNewlines(1, { delay: delay * 5 }).then(resolve)
         }, delay)
       })
     }
@@ -209,7 +207,7 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
       return new Promise(resolve => {
         setTimeout(() => {
           this.editor.insertHTML(content)
-          this.insertNewlines().then(resolve)
+          this.insertNewlines(1, { delay: delay * 5 }).then(resolve)
         }, delay)
       })
     }
@@ -222,16 +220,22 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
           setTimeout(() => {
             if (typeof content === 'string') {
               return disposition === 'inline'
-                ? this.insertHTML(content, { delay }).then(resolve)
-                : this.insertAttachment(content, { delay }).then(resolve)
+                ? this.insertHTML(content, { delay })
+                    .catch(e => this.renderError(e))
+                    .finally(resolve)
+                : this.insertAttachment(content, { delay })
+                    .catch(e => this.renderError(e))
+                    .finally(resolve)
             }
 
             if (Array.isArray(content)) {
-              return Promise.all(
+              const promises =
                 disposition === 'inline'
-                  ? content.map(c => this.insertHTML(c, { delay: (delay *= 5) }))
-                  : content.map(c => this.insertAttachment(c, { delay: (delay *= 5) }))
-              ).then(resolve)
+                  ? content.map(c => this.insertHTML(c, { delay: (delay *= 1.15) }))
+                  : content.map(c => this.insertAttachment(c, { delay: (delay *= 1.15) }))
+              return Promise.all(promises)
+                .catch(e => this.renderError(e))
+                .finally(resolve)
             }
 
             resolve()
