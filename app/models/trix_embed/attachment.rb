@@ -16,6 +16,7 @@ module TrixEmbed
         csp
         data-trix-embed
         data-trix-embed-error
+        data-trix-embed-prohibited
         data-trix-embed-warning
         loading
         referrerpolicy

@@ -6,7 +6,7 @@ import {
   extractURLFromElement,
   validateURL
 } from './urls'
-import { getMediaType, mediaTags, trixAttachmentTag } from './media'
+import { getMediaType, mediaTags, trixAttachmentTag, trixEmbedMediaTypes } from './media'
 import Guard from './guard'
 import Store from './store'
 import Renderer from './renderer'
@@ -80,18 +80,12 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
         let urls
 
         // 1. render errors (i.e. invalid urls) ..............................................................
-        urls = invalidMediaURLs
+        urls = [...invalidMediaURLs, ...invalidStandardURLs]
         if (urls.length) await this.insert(renderer.renderWarnings(urls, hosts.sort()))
 
-        // 2. render valid media urls (i.e. embeds) ..........................................................
-        urls = validMediaURLs
-        if (urls.length) await this.insert(renderer.renderEmbeds(urls))
-
-        // 3. exit early if there is only 1 URL and it's a valid media URL (i.e. a single embed) .............
-        if (pastedURLs.length === 1 && validMediaURLs.length === 1) return
-
-        // 4. render the pasted content as  HTML ....................................................
+        // 2. render the pasted content as  HTML ....................................................
         const sanitizedPastedElement = this.sanitizePastedElement(pastedElement, {
+          renderer,
           validMediaURLs,
           validStandardURLs
         })
@@ -120,8 +114,9 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
       return options.default
     }
 
-    sanitizePastedElement(element, options = { validMediaURLs: [], validStandardURLs: [] }) {
-      const { validMediaURLs, validStandardURLs } = options
+    sanitizePastedElement(element, options = { renderer: null, validMediaURLs: [], validStandardURLs: [] }) {
+      const { renderer, validMediaURLs, validStandardURLs } = options
+
       element = element.cloneNode(true)
 
       // sanitize text nodes
@@ -139,8 +134,10 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
           const url = createURLObject(match)?.href
           const replacement =
             validStandardURLs.includes(url) || validStandardURLs.includes(url)
-              ? `<a href="${url}">${url}</a>`
-              : `<del><strong>PROHIBITED LINK:</strong> <span>${url}<span></del>`
+              ? renderer.render('anchor', { href: url, content: url })
+              : renderer.renderTrixAttachment(
+                  renderer.render('prohibited', { content: url, detail: { url, type: 'URL' } })
+                )
           textNode.replacements.add({ match, replacement })
         })
       }
@@ -158,8 +155,10 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
         const url = extractURLFromElement(el)
         const label = this.extractLabelFromElement(el, { default: url })
         const replacement = validStandardURLs.includes(url)
-          ? `<a href="${url}">${label}</a>`
-          : `<del><strong>PROHIBITED LINK:</strong> <span>${label}</span></del>`
+          ? renderer.render('anchor', { href: url, content: label })
+          : renderer.renderTrixAttachment(
+              renderer.render('prohibited', { content: label, detail: { url, type: 'LINK' } })
+            )
         el.replaceWith(this.createTemplateElement(replacement))
       })
 
@@ -169,8 +168,10 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
         const label = this.extractLabelFromElement(el, { default: url })
 
         const replacement = validMediaURLs.includes(url)
-          ? `<samp>ALLOWED MEDIA (embedded above): ${label}</samp>`
-          : `<del><strong>PROHIBITED MEDIA:</strong> ${label}</del>`
+          ? renderer.renderTrixAttachment(renderer.renderEmbed(url))
+          : renderer.renderTrixAttachment(
+              renderer.render('prohibited', { content: label, detail: { url, type: 'MEDIA' } })
+            )
 
         el.replaceWith(this.createTemplateElement(replacement))
       })
@@ -195,7 +196,7 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
       const { delay } = options
       return new Promise(resolve => {
         setTimeout(() => {
-          const attachment = new Trix.Attachment({ content, contentType: this.attachmentContentType })
+          const attachment = new Trix.Attachment({ content, contentType: trixEmbedMediaTypes.attachment })
           this.editor.insertAttachment(attachment)
           this.insertNewlines(1, { delay: delay * 5 }).then(resolve)
         }, delay)
@@ -244,11 +245,6 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
       }
 
       return Promise.resolve()
-    }
-
-    // Maches the server side `trix_embed_attachment` mime type
-    get attachmentContentType() {
-      return 'trix-embed/attachment'
     }
 
     get editor() {

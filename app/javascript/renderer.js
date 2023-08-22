@@ -1,8 +1,9 @@
 import { createURLObject, extractURLHosts } from './urls'
-import { isImage, getMediaType, trixAttachmentTag } from './media'
+import { isImage, getMediaType, trixAttachmentTag, trixEmbedMediaTypes } from './media'
 import templates from './templates'
 
-// TrixEmbed::Attachment::ALLOWED_TAGS
+// Matches server side configuration
+// SEE: TrixEmbed::Attachment::ALLOWED_TAGS (app/models/trix_embed/attachment.rb)
 const ALLOWED_TAGS = [
   trixAttachmentTag,
   'a',
@@ -52,7 +53,8 @@ const ALLOWED_TAGS = [
   'var'
 ]
 
-// TrixEmbed::Attachment::ALLOWED_ATTRIBUTES
+// Matches server side configuration
+// SEE: TrixEmbed::Attachment::ALLOWED_ATTRIBUTES (app/models/trix_embed/attachment.rb)
 const ALLOWED_ATTRIBUTES = [
   'abbr',
   'allow',
@@ -66,6 +68,7 @@ const ALLOWED_ATTRIBUTES = [
   'csp',
   'data-trix-embed',
   'data-trix-embed-error',
+  'data-trix-embed-prohibited',
   'data-trix-embed-warning',
   'datetime',
   'filename',
@@ -115,26 +118,38 @@ export default class Renderer {
   }
 
   initializeTempates() {
-    const templates = ['error', 'iframe', 'image', 'warning']
-    templates.forEach(name => this.initializeTemplate(name))
+    this.templates = templates
+    Object.keys(templates).forEach(name => this.initializeTemplate(name))
   }
 
   initializeTemplate(name) {
-    const property = `${name}Template`
-    let template
-
-    // attempt to find custom template
-    const key = `${property}Value`
-    const id = this.controller[key]
-    if (id) template = document.getElementById(id)?.innerHTML
-    this.controller[key] = null
-
-    template = template || templates[name]
-    this[property] = template.trim()
+    const property = `${name}TemplateValue`
+    const id = this.controller[property]
+    const template = id ? document.getElementById(id)?.innerHTML?.trim() : null
+    this.controller[property] = null
+    if (template) this.templates[name] = template
+    return this.templates[name]
   }
 
-  render(template, params = {}) {
+  render(templateName, params = {}) {
+    const template = this.templates[templateName]
     return template.replace(/{{(.*?)}}/g, (_, key) => key.split('.').reduce((obj, k) => obj[k], params))
+  }
+
+  renderTrixAttachment(content) {
+    const attachment = new Trix.Attachment({ content, contentType: trixEmbedMediaTypes.attachment })
+    const piece = new Trix.AttachmentPiece(attachment)
+    const view = new Trix.AttachmentView(attachment, { piece })
+
+    const figure = Trix.makeElement({
+      tagName: 'figure',
+      className: view.getClassName(),
+      data: view.getData(),
+      editable: false
+    })
+
+    figure.innerHTML = attachment.getContent()
+    return figure.outerHTML
   }
 
   // TOOO: add support for audio and video
@@ -144,20 +159,8 @@ export default class Renderer {
   // @returns {String} HTML
   //
   renderEmbed(url = 'https://example.com') {
-    const html = isImage(url)
-      ? this.render(this.imageTemplate, { src: url })
-      : this.render(this.iframeTemplate, { src: url })
+    const html = isImage(url) ? this.render('image', { src: url }) : this.render('iframe', { src: url })
     return this.sanitize(html)
-  }
-
-  // Renders a list of URLs as HTML embeds i.e. iframes or media tags (img, video, audio etc.)
-  //
-  // @param {String[]} urls - list of URLs
-  // @returns {String[]} list of individual HTML embeds
-  //
-  renderEmbeds(urls = ['https://example.com', 'https://test.com']) {
-    if (!urls?.length) return
-    return urls.map(url => this.renderEmbed(url))
   }
 
   // Renders embed errors
@@ -171,7 +174,7 @@ export default class Renderer {
 
     const hosts = extractURLHosts(urls).sort()
 
-    return this.render(this.warningTemplate, {
+    return this.render('warning', {
       header: 'Copy/Paste Warning',
       subheader: 'The pasted content includes media from unsupported hosts.',
       prohibited: {
@@ -195,7 +198,7 @@ export default class Renderer {
   // @returns {String} HTML
   //
   renderError(error) {
-    return this.render(this.errorTemplate, {
+    return this.render('error', {
       header: 'Unhandled Exception!',
       subheader: 'Report this problem to a software engineer.',
       error: error

@@ -1,5 +1,11 @@
 import { createURLObject } from './urls'
 
+// Matches server side configuration
+// SEE: lib/trix_embed/engine.rb
+export const trixEmbedMediaTypes = {
+  attachment: 'trix-embed/attachment'
+}
+
 const audioMediaTypes = {
   mp3: 'audio/mpeg', // MP3 audio format
   ogg: 'audio/ogg', // OGG audio format

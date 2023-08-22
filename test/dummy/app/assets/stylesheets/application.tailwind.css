@@ -16,17 +16,36 @@
 
 /* trix embed ***********************************************************************************************/
 .trix-content figure:has([data-trix-embed]) {
-  @apply block my-2 p-2;
+  @apply block my-2 p-2 relative;
 }
+
+/* only show problems in edit mode i.e. when inside a form */
+form .trix-content figure:has([data-trix-embed-error]),
+form .trix-content figure:has([data-trix-embed-prohibited]),
+form .trix-content figure:has([data-trix-embed-warning]) {
+  @apply block;
+}
+.trix-content figure:has([data-trix-embed-error]),
+.trix-content figure:has([data-trix-embed-prohibited]),
+.trix-content figure:has([data-trix-embed-warning]) {
+  @apply hidden;
+}
+
+/* always hide the caption */
 .trix-content figure:has([data-trix-embed]) figcaption {
   display: none;
 }
+
+/* default figure styles */
 form .trix-content figure:has([data-trix-embed]) {
-  @apply border-indigo-500 outline-indigo-100 border outline outline-2;
+  @apply border-green-500 outline-green-100 border outline outline-2;
 }
 form .trix-content figure[data-trix-mutable=true]:has([data-trix-embed]) {
-  @apply outline-4 border-indigo-700 outline-indigo-200;
+  @apply outline-4 border-green-700 outline-green-200;
 }
+
+/* figure content styles */
+
 .trix-content figure [data-trix-embed] h1 {
   @apply mb-4 text-3xl font-bold;
 }
@@ -49,18 +68,32 @@ form .trix-content figure[data-trix-mutable=true]:has([data-trix-embed]) {
   @apply bg-gray-100 shadow-none !important;
 }
 
-/* anchor tags **********************************************************************************************/
-.trix-content a[data-trix-embed] {
-  @apply underline underline-offset-2 text-blue-600;
+/* trix embed errors ****************************************************************************************/
+.trix-content figure:has([data-trix-embed][data-trix-embed-error]) {
+  @apply bg-yellow-50 border-red-500 outline-red-100;
+}
+.trix-content figure[data-trix-mutable=true]:has([data-trix-embed][data-trix-embed-error]) {
+  @apply border-red-700 outline-red-200;
+}
+.trix-content figure [data-trix-embed][data-trix-embed-error] h1 {
+  @apply text-red-600;
 }
 
-.trix-content del {
-  @apply pr-1 bg-fuchsia-100 text-fuchsia-700 no-underline;
+/* trix embed prohibited ************************************************************************************/
+.trix-content figure:has([data-trix-embed][data-trix-embed-prohibited]) {
+  @apply bg-orange-50 border-orange-500 outline-orange-100;
+}
+.trix-content figure[data-trix-mutable=true]:has([data-trix-embed][data-trix-embed-prohibited]) {
+  @apply border-orange-700 outline-orange-200;
+}
+.trix-content figure [data-trix-embed-prohibited]:after {
+  @apply block bg-orange-200 p-1 my-2 font-mono text-xs text-orange-900;
+  content: 'PROHIBITED ' attr(data-trix-embed-prohibited);
 }
 
 /* trix embed warnings **************************************************************************************/
 .trix-content figure:has([data-trix-embed][data-trix-embed-warning]) {
-  @apply border-rose-500 outline-rose-100;
+  @apply bg-rose-50 border-rose-500 outline-rose-100;
 }
 .trix-content figure[data-trix-mutable=true]:has([data-trix-embed][data-trix-embed-warning]) {
   @apply border-rose-700 outline-rose-200;
@@ -77,13 +110,7 @@ form .trix-content figure[data-trix-mutable=true]:has([data-trix-embed]) {
   @apply text-green-600;
 }
 
-/* trix embed errors ****************************************************************************************/
-.trix-content figure:has([data-trix-embed][data-trix-embed-error]) {
-  @apply bg-yellow-50 border-red-500 outline-red-100;
-}
-.trix-content figure[data-trix-mutable=true]:has([data-trix-embed][data-trix-embed-error]) {
-  @apply border-red-700 outline-red-200;
-}
-.trix-content figure [data-trix-embed-error] h1 {
-  @apply text-red-600;
+/* anchor tags **********************************************************************************************/
+.trix-content a {
+  @apply underline underline-offset-2 text-blue-600;
 }
