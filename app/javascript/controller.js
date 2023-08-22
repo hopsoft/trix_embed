@@ -55,7 +55,7 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
       const pastedElement = this.createTemplateElement(content)
       const pastedURLs = extractURLs(pastedElement)
 
-      // no URLs were pasted, let Trix handle it ...............................................................
+      // no URLs were pasted, let Trix handle it .............................................................
       if (!pastedURLs.length) return
 
       event.preventDefault()
@@ -99,7 +99,7 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
         })
         const sanitizedPastedContent = sanitizedPastedElement.innerHTML.trim()
         if (sanitizedPastedContent.length) {
-          await this.insert(`<br><br>${sanitizedPastedContent}`, { disposition: 'inline' })
+          await this.insert(sanitizedPastedContent, { disposition: 'inline' })
         }
       } catch (e) {
         this.insert(renderer.renderError(e))
@@ -142,7 +142,7 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
           const replacement =
             validStandardURLs.includes(url) || validStandardURLs.includes(url)
               ? `<a href="${url}">${url}</a>`
-              : `<del><strong>PROHIBITED LINK:</strong> ${url}</del>`
+              : `<del><strong>PROHIBITED LINK:</strong> <span>${url}<span></del>`
           textNode.replacements.add({ match, replacement })
         })
       }
@@ -161,7 +161,7 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
         const label = this.extractLabelFromElement(el, { default: url })
         const replacement = validStandardURLs.includes(url)
           ? `<a href="${url}">${label}</a>`
-          : `<del><strong>PROHIBITED LINK:</strong> ${label}</del>`
+          : `<del><strong>PROHIBITED LINK:</strong> <span>${label}</span></del>`
         el.replaceWith(this.createTemplateElement(replacement))
       })
 
@@ -183,51 +183,55 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
       return element
     }
 
-    insertAttachment(content, options = { delay: 0 }) {
+    insertNewlines(count = 1, options = { delay: 1 }) {
+      const { delay } = options
+      return new Promise(resolve => {
+        setTimeout(() => {
+          for (let i = 0; i < count; i++) this.editor.insertLineBreak()
+          resolve()
+        }, delay)
+      })
+    }
+
+    insertAttachment(content, options = { delay: 1 }) {
       const { delay } = options
       return new Promise(resolve => {
         setTimeout(() => {
           const attachment = new Trix.Attachment({ content, contentType: this.attachmentContentType })
           this.editor.insertAttachment(attachment)
-          resolve()
+          this.insertNewlines(2).then(resolve)
         }, delay)
       })
     }
 
-    insertHTML(content, options = { delay: 0 }) {
+    insertHTML(content, options = { delay: 1 }) {
       const { delay } = options
       return new Promise(resolve => {
         setTimeout(() => {
           this.editor.insertHTML(content)
-          // shenanigans to ensure that Trix considers this block of content closed
-          this.editor.moveCursorInDirection('forward')
-          this.editor.insertLineBreak()
-          this.editor.moveCursorInDirection('backward')
-          resolve()
+          this.insertNewlines().then(resolve)
         }, delay)
       })
     }
 
-    insert(content, options = { delay: 0, disposition: 'attachment' }) {
-      const { delay, disposition } = options
+    insert(content, options = { delay: 1, disposition: 'attachment' }) {
+      let { delay, disposition } = options
 
       if (content?.length) {
         return new Promise(resolve => {
           setTimeout(() => {
             if (typeof content === 'string') {
-              if (disposition === 'inline') return this.insertHTML(content, { delay }).then(resolve)
-              else return this.insertAttachment(content, { delay }).then(resolve)
+              return disposition === 'inline'
+                ? this.insertHTML(content, { delay }).then(resolve)
+                : this.insertAttachment(content, { delay }).then(resolve)
             }
 
             if (Array.isArray(content)) {
-              if (disposition === 'inline')
-                return content
-                  .reduce((p, c, i) => p.then(this.insertHTML(c, { delay })), Promise.resolve())
-                  .then(resolve)
-              else
-                return content
-                  .reduce((p, c, i) => p.then(this.insertAttachment(c, { delay })), Promise.resolve())
-                  .then(resolve)
+              return Promise.all(
+                disposition === 'inline'
+                  ? content.map(c => this.insertHTML(c, { delay: (delay *= 5) }))
+                  : content.map(c => this.insertAttachment(c, { delay: (delay *= 5) }))
+              ).then(resolve)
             }
 
             resolve()

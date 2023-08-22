@@ -1,6 +1,6 @@
 const defaults = {
-  iframe: `<div><iframe></iframe></div>`,
-  image: `<div><img></img></div>`,
+  iframe: `<iframe></iframe>`,
+  image: `<img></img>`,
 
   warning: `
     <div>

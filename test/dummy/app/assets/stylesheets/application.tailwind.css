@@ -11,29 +11,49 @@
 }
 
 */
+
 @import 'actiontext.css';
 
+/* anchor tags / links */
 .trix-content a {
-  @apply my-4 underline underline-offset-2 text-blue-600 !important;
+  @apply underline underline-offset-2 text-blue-600;
 }
-.trix-content figure, .trix-content figcaption, {
-  @apply block !important;
+
+/* form attachment styling */
+form .trix-content figure:has(iframe),
+form .trix-content figure:has(img) {
+  @apply my-2;
 }
-form .trix-content figure:not(:has(iframe)):not(:has(img)):not(:has(a)) {
-  @apply p-4;
+form .trix-content figure:has(h1),
+form .trix-content figure:has(iframe),
+form .trix-content figure:has(img) {
+  @apply block p-1 border border-fuchsia-500 outline outline-2 outline-fuchsia-100;
 }
-.trix-content figure h1 {
+form .trix-content figure[data-trix-mutable=true]:has(iframe),
+form .trix-content figure[data-trix-mutable=true]:has(img) {
+  @apply border-fuchsia-700  outline-fuchsia-200 outline-4;
+}
+
+/* Error messages */
+.trix-content figure:has(h1):has(ul) {
+  @apply block my-1 p-4 bg-rose-50 border border-rose-500 outline outline-2 outline-rose-100;
+}
+.trix-content figure[data-trix-mutable=true]:has(h1):has(ul) {
+  @apply border-rose-700  outline-rose-200 outline-4;
+}
+.trix-content figure:has(h1):has(ul) h1 {
   @apply my-4 text-3xl font-bold text-rose-500;
 }
-.trix-content figure h2 {
+.trix-content figure:has(h1):has(ul) h2 {
   @apply my-3 text-2xl font-bold;
 }
-.trix-content figure h3 {
+.trix-content figure:has(h1):has(ul) h3 {
   @apply mt-3 mb-6 text-xl font-normal;
 }
-.trix-content figure hr {
+.trix-content figure:has(h1):has(ul) hr {
   @apply border-dotted border-rose-300;
 }
+
 .trix-content del {
   @apply pr-1 bg-fuchsia-100 text-fuchsia-700 no-underline;
 }
