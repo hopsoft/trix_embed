@@ -1,6 +1,15 @@
 export default {
   // inline templates ........................................................................................
-  anchor: `<a href='{{href}}'>{{content}}</a>`,
+  anchor: `<a href='{{url}}'>{{label}}</a>`,
+
+  embedded: `<span>{{label}}</span>`,
+
+  prohibited: `
+    <span>
+      <strong>{{label}}</strong>
+      <del>{{url}}</del>
+    </span>
+  `,
 
   // attachment templates ....................................................................................
   error: `
@@ -19,12 +28,6 @@ export default {
   image: `
     <div data-trix-embed>
       <img src='{{src}}' loading='lazy'></img>
-    </div>
-  `,
-
-  prohibited: `
-    <div data-trix-embed data-trix-embed-prohibited='{{detail.type}}: {{detail.url}}'>
-      <del>{{content}}</del>
     </div>
   `,
 

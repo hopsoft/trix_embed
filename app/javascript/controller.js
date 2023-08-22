@@ -11,12 +11,7 @@ import Guard from './guard'
 import Store from './store'
 import Renderer from './renderer'
 
-const defaultOptions = {
-  Controller: null,
-  Trix: null
-}
-
-export function getTrixEmbedControllerClass(options = defaultOptions) {
+export function getTrixEmbedControllerClass(options = { Controller: null, Trix: null }) {
   const { Controller, Trix } = options
   return class extends Controller {
     static values = {
@@ -30,12 +25,9 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
       paranoid: { type: Boolean, default: true } // guard against attacks
     }
 
-    async connect() {
-      this.guard = new Guard(this)
-      if (this.paranoidValue) this.guard.protect()
-
-      this.store = new Store(this)
-      await this.rememberConfig()
+    connect() {
+      this.oninitialize = this.initialize.bind(this)
+      this.element.addEventListener('trix-initialize', this.oninitialize, true)
 
       this.onpaste = this.paste.bind(this)
       this.element.addEventListener('trix-paste', this.onpaste, true)
@@ -44,9 +36,20 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
     }
 
     disconnect() {
+      this.element.removeEventListener('trix-initialize', this.oninitialize, true)
       this.element.removeEventListener('trix-paste', this.onpaste, true)
       if (this.paranoid) this.guard.cleanup()
       this.forgetConfig()
+    }
+
+    initialize() {
+      setTimeout(() => {
+        this.guard = new Guard(this)
+        if (this.paranoidValue) this.guard.protect()
+
+        this.store = new Store(this)
+        this.rememberConfig()
+      })
     }
 
     async paste(event) {
@@ -59,6 +62,7 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
       if (!pastedURLs.length) return
 
       event.preventDefault()
+
       this.editor.setSelectedRange(range)
       const hosts = await this.hosts
       const renderer = new Renderer(this)
@@ -77,22 +81,27 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
         const validStandardURLs = standardURLs.filter(url => validateURL(url, hosts))
         const invalidStandardURLs = standardURLs.filter(url => !validStandardURLs.includes(url))
 
-        let urls
+        // all invalid URLs
+        const invalidURLs = [...invalidMediaURLs, ...invalidStandardURLs]
 
-        // 1. render errors (i.e. invalid urls) ..............................................................
-        urls = [...invalidMediaURLs, ...invalidStandardURLs]
-        if (urls.length) await this.insert(renderer.renderWarnings(urls, hosts.sort()))
+        // 1. render warnings ................................................................................
+        if (invalidURLs.length) await this.insert(renderer.renderWarnings(invalidURLs, hosts.sort()))
 
-        // 2. render the pasted content as  HTML ....................................................
+        // 2. render valid media urls (i.e. embeds) ..........................................................
+        if (validMediaURLs.length) await this.insert(renderer.renderEmbeds(validMediaURLs))
+
+        // 3. exit early if there is only 1 URL and it's a valid media URL (i.e. a single embed) .............
+        if (pastedURLs.length === 1 && validMediaURLs.length === 1) return
+
+        // 4. render the pasted content as  HTML .............................................................
         const sanitizedPastedElement = this.sanitizePastedElement(pastedElement, {
           renderer,
           validMediaURLs,
           validStandardURLs
         })
         const sanitizedPastedContent = sanitizedPastedElement.innerHTML.trim()
-        if (sanitizedPastedContent.length) {
+        if (sanitizedPastedContent.length)
           await this.insert(sanitizedPastedContent, { disposition: 'inline' })
-        }
       } catch (e) {
         this.insert(renderer.renderError(e))
       }
@@ -135,9 +144,7 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
           const replacement =
             validStandardURLs.includes(url) || validStandardURLs.includes(url)
               ? renderer.render('anchor', { href: url, content: url })
-              : renderer.renderTrixAttachment(
-                  renderer.render('prohibited', { content: url, detail: { url, type: 'URL' } })
-                )
+              : renderer.render('prohibited', { url, label: 'Prohibited URL' })
           textNode.replacements.add({ match, replacement })
         })
       }
@@ -155,10 +162,8 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
         const url = extractURLFromElement(el)
         const label = this.extractLabelFromElement(el, { default: url })
         const replacement = validStandardURLs.includes(url)
-          ? renderer.render('anchor', { href: url, content: label })
-          : renderer.renderTrixAttachment(
-              renderer.render('prohibited', { content: label, detail: { url, type: 'LINK' } })
-            )
+          ? renderer.render('anchor', { url, label })
+          : renderer.render('prohibited', { url, label: 'Prohibited link' })
         el.replaceWith(this.createTemplateElement(replacement))
       })
 
@@ -168,10 +173,8 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
         const label = this.extractLabelFromElement(el, { default: url })
 
         const replacement = validMediaURLs.includes(url)
-          ? renderer.renderTrixAttachment(renderer.renderEmbed(url))
-          : renderer.renderTrixAttachment(
-              renderer.render('prohibited', { content: label, detail: { url, type: 'MEDIA' } })
-            )
+          ? renderer.render('embedded', { label })
+          : renderer.render('prohibited', { url, label: 'Prohibited media' })
 
         el.replaceWith(this.createTemplateElement(replacement))
       })
@@ -252,15 +255,13 @@ export function getTrixEmbedControllerClass(options = defaultOptions) {
     }
 
     get toolbarElement() {
-      const sibling = this.element.previousElementSibling
-      return sibling?.tagName.match(/trix-toolbar/i) ? sibling : null
+      const id = this.element.getAttribute('toolbar')
+      return id ? document.getElementById(id) : null
     }
 
     get inputElement() {
-      return (
-        this.formElement?.querySelector(`#${this.element.getAttribute('input')}`) ||
-        document.getElementById(this.element.getAttribute('input'))
-      )
+      const id = this.element.getAttribute('input')
+      return id ? document.getElementById(id) : null
     }
 
     get formElement() {

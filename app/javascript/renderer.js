@@ -136,22 +136,6 @@ export default class Renderer {
     return template.replace(/{{(.*?)}}/g, (_, key) => key.split('.').reduce((obj, k) => obj[k], params))
   }
 
-  renderTrixAttachment(content) {
-    const attachment = new Trix.Attachment({ content, contentType: trixEmbedMediaTypes.attachment })
-    const piece = new Trix.AttachmentPiece(attachment)
-    const view = new Trix.AttachmentView(attachment, { piece })
-
-    const figure = Trix.makeElement({
-      tagName: 'figure',
-      className: view.getClassName(),
-      data: view.getData(),
-      editable: false
-    })
-
-    figure.innerHTML = attachment.getContent()
-    return figure.outerHTML
-  }
-
   // TOOO: add support for audio and video
   // Renders a URL as an HTML embed i.e. an iframe or media tag (img, video, audio etc.)
   //
@@ -161,6 +145,16 @@ export default class Renderer {
   renderEmbed(url = 'https://example.com') {
     const html = isImage(url) ? this.render('image', { src: url }) : this.render('iframe', { src: url })
     return this.sanitize(html)
+  }
+
+  // Renders a list of URLs as HTML embeds i.e. iframes or media tags (img, video, audio etc.)
+  //
+  // @param {String[]} urls - list of URLs
+  // @returns {String[]} list of individual HTML embeds
+  //
+  renderEmbeds(urls = ['https://example.com', 'https://test.com']) {
+    if (!urls?.length) return
+    return urls.map(url => this.renderEmbed(url))
   }
 
   // Renders embed errors
