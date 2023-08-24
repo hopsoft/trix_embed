@@ -205,7 +205,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       return new Promise(resolve => {
         setTimeout(() => {
           this.editor.insertAttachment(this.createAttachment(content))
-          this.insertNewlines(1, { delay: delay * 1.15 }).finally(resolve)
+          this.insertNewlines(1, { delay: delay }).finally(resolve)
         }, delay)
       })
     }
@@ -215,7 +215,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       return new Promise(resolve => {
         setTimeout(() => {
           this.editor.insertHTML(content)
-          this.insertNewlines(1, { delay: delay * 1.15 }).finally(resolve)
+          this.insertNewlines(1, { delay }).finally(resolve)
         }, delay)
       })
     }
@@ -239,8 +239,8 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
             if (Array.isArray(content)) {
               const promises =
                 disposition === 'inline'
-                  ? content.map(c => this.insertHTML(c, { delay: (delay *= 1.15) }))
-                  : content.map(c => this.insertAttachment(c, { delay: (delay *= 1.15) }))
+                  ? content.map(c => this.insertHTML(c, { delay: delay + 1 }))
+                  : content.map(c => this.insertAttachment(c, { delay: delay + 1 }))
               return Promise.all(promises)
                 .catch(e => this.renderError(e))
                 .finally(resolve)
