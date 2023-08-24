@@ -1,8 +1,14 @@
 export default {
   // inline templates ........................................................................................
-  anchor: `<a href='{{url}}'>{{label}}</a>`,
+  link: `<a href='{{url}}'>{{label}}</a>`,
 
-  embedded: `<span>{{label}}</span>`,
+  embedded: `
+    <span>
+      <strong>{{label}}</strong>
+      <small>{{description}}</small>
+      <del>{{url}}</del>
+    </span>
+  `,
 
   prohibited: `
     <span>

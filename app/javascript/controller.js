@@ -16,9 +16,13 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
   return class extends Controller {
     static values = {
       // templates
-      warningTemplate: String, // dom id of template to use when invalid embeds are detected
+      embeddedTemplate: String, // dom id of template to for embedded media info
+      errorTemplate: String, // dom id of template to for unexpected errors
       iframeTemplate: String, // dom id of template to use for iframe embeds
       imageTemplate: String, // dom id of template to use for image embeds
+      linkTemplate: String, // dom id of template to for allowed links
+      prohibitedTemplate: String, // dom id of template to for prohibited urls
+      warningTemplate: String, // dom id of template to use when invalid embeds are detected
 
       // security related values
       hosts: Array, // list of hosts/domains that embeds are allowed from
@@ -31,24 +35,25 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
 
       this.onpaste = this.paste.bind(this)
       this.element.addEventListener('trix-paste', this.onpaste, true)
-
-      window.addEventListener('beforeunload', () => this.disconnect())
     }
 
     disconnect() {
       this.element.removeEventListener('trix-initialize', this.oninitialize, true)
       this.element.removeEventListener('trix-paste', this.onpaste, true)
-      if (this.paranoid) this.guard.cleanup()
+
+      if (this.guard && this?.paranoid) this.guard.cleanup()
       this.forgetConfig()
     }
 
     initialize() {
       setTimeout(() => {
-        this.guard = new Guard(this)
-        if (this.paranoidValue) this.guard.protect()
-
         this.store = new Store(this)
         this.rememberConfig()
+
+        if (this.paranoid) {
+          this.guard = new Guard(this)
+          this.guard.protect()
+        }
       })
     }
 
@@ -143,7 +148,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
           const url = createURLObject(match)?.href
           const replacement =
             validStandardURLs.includes(url) || validStandardURLs.includes(url)
-              ? renderer.render('anchor', { href: url, content: url })
+              ? renderer.render('link', { url, label: url })
               : renderer.render('prohibited', { url, label: 'Prohibited URL' })
           textNode.replacements.add({ match, replacement })
         })
@@ -162,7 +167,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
         const url = extractURLFromElement(el)
         const label = this.extractLabelFromElement(el, { default: url })
         const replacement = validStandardURLs.includes(url)
-          ? renderer.render('anchor', { url, label })
+          ? renderer.render('link', { url, label })
           : renderer.render('prohibited', { url, label: 'Prohibited link' })
         el.replaceWith(this.createTemplateElement(replacement))
       })
@@ -173,7 +178,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
         const label = this.extractLabelFromElement(el, { default: url })
 
         const replacement = validMediaURLs.includes(url)
-          ? renderer.render('embedded', { label })
+          ? renderer.render('embedded', { url, label: 'Allowed Media', description: '(embedded above)' })
           : renderer.render('prohibited', { url, label: 'Prohibited media' })
 
         el.replaceWith(this.createTemplateElement(replacement))
@@ -183,6 +188,10 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       element.innerHTML.replaceAll(/(\n|\r|\f|\v)+/g, '<br>')
 
       return element
+    }
+
+    createAttachment(content) {
+      return new Trix.Attachment({ content, contentType: trixEmbedMediaTypes.attachment })
     }
 
     insertNewlines(count = 1, options = { delay: 1 }) {
@@ -199,9 +208,8 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       const { delay } = options
       return new Promise(resolve => {
         setTimeout(() => {
-          const attachment = new Trix.Attachment({ content, contentType: trixEmbedMediaTypes.attachment })
-          this.editor.insertAttachment(attachment)
-          this.insertNewlines(1, { delay: delay * 5 }).then(resolve)
+          this.editor.insertAttachment(this.createAttachment(content))
+          this.insertNewlines(1, { delay: delay * 1.15 }).finally(resolve)
         }, delay)
       })
     }
@@ -211,7 +219,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       return new Promise(resolve => {
         setTimeout(() => {
           this.editor.insertHTML(content)
-          this.insertNewlines(1, { delay: delay * 5 }).then(resolve)
+          this.insertNewlines(1, { delay: delay * 1.15 }).finally(resolve)
         }, delay)
       })
     }
