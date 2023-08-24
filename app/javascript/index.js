@@ -12,7 +12,7 @@ const defaultOptions = {
 
 function initialize(options = defaultOptions) {
   if (initialized) return
-  const { application, Controller } = options
+  const { application, Controller, Trix } = options
   application.register('trix-embed', getTrixEmbedControllerClass({ Controller, Trix }))
   initialized = true
 }
