@@ -31,9 +31,9 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
 
     connect() {
       this.oninitialize = this.initialize.bind(this)
-      this.element.addEventListener('trix-initialize', this.oninitialize, true)
-
       this.onpaste = this.paste.bind(this)
+
+      this.element.addEventListener('trix-initialize', this.oninitialize, true)
       this.element.addEventListener('trix-paste', this.onpaste, true)
     }
 
@@ -41,7 +41,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       this.element.removeEventListener('trix-initialize', this.oninitialize, true)
       this.element.removeEventListener('trix-paste', this.onpaste, true)
 
-      if (this.guard && this?.paranoid) this.guard.cleanup()
+      if (this.paranoid) this.guard?.cleanup()
       this.forgetConfig()
     }
 
@@ -49,11 +49,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       setTimeout(() => {
         this.store = new Store(this)
         this.rememberConfig()
-
-        if (this.paranoid) {
-          this.guard = new Guard(this)
-          this.guard.protect()
-        }
+        if (this.paranoid) this.guard = new Guard(this)
       })
     }
 
@@ -264,12 +260,19 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
 
     get toolbarElement() {
       const id = this.element.getAttribute('toolbar')
-      return id ? document.getElementById(id) : null
+      let toolbar = id ? document.getElementById(id) : null
+
+      if (!toolbar) {
+        const sibling = this.element.previousElementSibling
+        toolbar = sibling?.tagName.match(/trix-toolbar/i) ? sibling : null
+      }
+
+      return toolbar
     }
 
     get inputElement() {
       const id = this.element.getAttribute('input')
-      return id ? document.getElementById(id) : null
+      return id ? this.formElement?.querySelector(`#${id}`) || document.getElementById(id) : null
     }
 
     get formElement() {
@@ -347,9 +350,9 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
     }
 
     forgetConfig() {
-      this.store.remove('key')
-      this.store.remove('hosts')
-      this.store.remove('paranoid')
+      this.store?.remove('key')
+      this.store?.remove('hosts')
+      this.store?.remove('paranoid')
     }
   }
 }
