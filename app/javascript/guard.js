@@ -10,20 +10,17 @@ function protect(event) {
   if (protectedForms[key] && !protectedForms[key].has(form)) event.preventDefault()
 }
 
-document.addEventListener('submit', protectSubmit, true)
+document.addEventListener('submit', protect, true)
 
 export default class Guard {
   constructor(controller) {
-    this.editor = controller.element
-    this.toolbar = controller.toolbarElement
-    this.form = controller.formElement
-    this.protect()
+    this.controller = controller
   }
 
   preventAttachments() {
-    this.editor.removeAttribute('data-direct-upload-url')
-    this.editor.removeAttribute('data-blob-url-template')
-    this.editor.addEventListener('trix-file-accept', event => event.preventDefault())
+    this.editor?.removeAttribute('data-direct-upload-url')
+    this.editor?.removeAttribute('data-blob-url-template')
+    this.editor?.addEventListener('trix-file-accept', event => event.preventDefault(), true)
     this.toolbar?.querySelector('[data-trix-button-group="file-tools"]')?.remove()
   }
 
@@ -34,8 +31,21 @@ export default class Guard {
   protect() {
     this.preventAttachments()
     this.preventLinks()
+    if (!this.form) return
     const key = protectionKey(this.form)
     protectedForms[key] = protectedForms[key] || new Set()
     protectedForms[key].add(this.form)
+  }
+
+  get editor() {
+    return this.controller.element
+  }
+
+  get toolbar() {
+    return this.controller.toolbarElement
+  }
+
+  get form() {
+    return this.controller.formElement
   }
 }

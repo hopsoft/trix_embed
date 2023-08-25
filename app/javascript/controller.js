@@ -30,26 +30,29 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
     }
 
     connect() {
-      this.oninitialize = this.initialize.bind(this)
+      this.setup()
       this.onpaste = this.paste.bind(this)
-
-      this.element.addEventListener('trix-initialize', this.oninitialize, true)
       this.element.addEventListener('trix-paste', this.onpaste, true)
     }
 
     disconnect() {
-      this.element.removeEventListener('trix-initialize', this.oninitialize, true)
       this.element.removeEventListener('trix-paste', this.onpaste, true)
-
       this.forgetConfig()
     }
 
-    initialize() {
-      setTimeout(() => {
-        this.store = new Store(this)
-        this.rememberConfig()
-        if (this.paranoid) this.guard = new Guard(this)
-      })
+    protect() {
+      if (this.paranoid) this.guard.protect()
+    }
+
+    setup() {
+      // run protect again after trix-initialize
+      // wait for trix-initialize to complete via setTimeout
+      // because Trix isn't really ready after this event dispatches
+      this.element.addEventListener('trix-initialize', () => setTimeout(() => this.protect(), 100), true)
+      this.store = new Store(this)
+      this.rememberConfig()
+      this.guard = new Guard(this)
+      this.protect()
     }
 
     async paste(event) {
