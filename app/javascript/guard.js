@@ -28,7 +28,9 @@ export default class Guard {
     this.toolbar?.querySelector('[data-trix-action="link"]')?.remove()
   }
 
-  protect() {
+  protect(attempt = 0) {
+    if (!this.toolbar && attempt < 10) return setTimeout(() => this.protect(attempt + 1), 25)
+
     this.preventAttachments()
     this.preventLinks()
     if (!this.form) return

@@ -45,10 +45,6 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
     }
 
     setup() {
-      // run protect again after trix-initialize
-      // wait for trix-initialize to complete via setTimeout
-      // because Trix isn't really ready after this event dispatches
-      this.element.addEventListener('trix-initialize', () => setTimeout(() => this.protect(), 100), true)
       this.store = new Store(this)
       this.rememberConfig()
       this.guard = new Guard(this)
