@@ -16,12 +16,12 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
   return class extends Controller {
     static values = {
       // templates
-      embeddedTemplate: String, // dom id of template to for embedded media info
-      errorTemplate: String, // dom id of template to for unexpected errors
-      iframeTemplate: String, // dom id of template to use for iframe embeds
-      imageTemplate: String, // dom id of template to use for image embeds
-      linkTemplate: String, // dom id of template to for allowed links
-      prohibitedTemplate: String, // dom id of template to for prohibited urls
+      embeddedTemplate: String, // dom id of template to use for EMBEDDED MEDIA info
+      errorTemplate: String, // dom id of template to use for UNEXPECTED ERRORS
+      iframeTemplate: String, // dom id of template to use for IFRAME EMBEDS
+      imageTemplate: String, // dom id of template to use for IMAGE EMBEDS
+      linkTemplate: String, // dom id of template to use for ALLOWED LINKS
+      prohibitedTemplate: String, // dom id of template to use for PROHIBITED URLS
       warningTemplate: String, // dom id of template to use when invalid embeds are detected
 
       // security related values
