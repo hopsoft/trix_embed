@@ -53,7 +53,7 @@ bin/dev
 
 1. Run `yarn` and `bundle` to pick up the latest
 1. Bump version number at `lib/trix_embed/version.rb`. Pre-release versions use `.preN`
-1. Run `yarn build`
+1. Run `yarn build` - *builds both the Ruby gem and the NPM package*
 1. Commit and push changes to GitHub
 1. Run `rake release`
 1. Run `yarn publish --no-git-tag-version --access public`
