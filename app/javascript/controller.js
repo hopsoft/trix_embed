@@ -41,7 +41,6 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       this.element.removeEventListener('trix-initialize', this.oninitialize, true)
       this.element.removeEventListener('trix-paste', this.onpaste, true)
 
-      if (this.paranoid) this.guard?.cleanup()
       this.forgetConfig()
     }
 

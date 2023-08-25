@@ -1,12 +1,22 @@
-const protectors = {}
+const protectedForms = {}
+
+function protectionKey(form) {
+  return `${form?.method}:${form?.action}`.trim().toLowerCase()
+}
+
+function protect(event) {
+  const form = event.target.closest('form')
+  const key = protectionKey(form)
+  if (protectedForms[key] && !protectedForms[key].has(form)) event.preventDefault()
+}
+
+document.addEventListener('submit', protectSubmit, true)
 
 export default class Guard {
   constructor(controller) {
     this.editor = controller.element
     this.toolbar = controller.toolbarElement
     this.form = controller.formElement
-    this.input = controller.inputElement
-    this.key = this.form ? `${this.form.method}${this.form.action}` : null
     this.protect()
   }
 
@@ -21,31 +31,11 @@ export default class Guard {
     this.toolbar?.querySelector('[data-trix-action="link"]')?.remove()
   }
 
-  shouldProtectSubmit(form) {
-    if (!form || !this.form) return false
-    const input = this.input?.name ? form.querySelector(`[name="${this.input.name}"]`) : null
-    return form.action === this.form.action && form.method === this.form.method && input
-  }
-
-  protectSubmit = event => {
-    const form = event.target.closest('form')
-    if (this.shouldProtectSubmit(form) && !form.trixEmbed?.guard) event.preventDefault()
-  }
-
   protect() {
     this.preventAttachments()
     this.preventLinks()
-
-    if (!this.key) return
-
-    this.cleanup()
-    this.form.trixEmbed = { guard: this }
-    protectors[this.key] = this.protectSubmit.bind(this)
-    document.addEventListener('submit', protectors[this.key], true)
-  }
-
-  cleanup() {
-    if (this.key) document.removeEventListener('submit', protectors[this.key], true)
-    if (this.form) delete this.form.trixEmbed
+    const key = protectionKey(this.form)
+    protectedForms[key] = protectedForms[key] || new Set()
+    protectedForms[key].add(this.form)
   }
 }
