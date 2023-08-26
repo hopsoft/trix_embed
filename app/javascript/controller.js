@@ -30,9 +30,14 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
     }
 
     connect() {
-      this.setup()
       this.onpaste = this.paste.bind(this)
       this.element.addEventListener('trix-paste', this.onpaste, true)
+
+      this.rememberConfig()
+
+      this.store = new Store(this)
+      this.guard = new Guard(this)
+      if (this.paranoid) this.guard.protect()
     }
 
     disconnect() {
@@ -40,69 +45,64 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       this.forgetConfig()
     }
 
-    protect() {
-      if (this.paranoid) this.guard.protect()
-    }
-
-    setup() {
-      this.store = new Store(this)
-      this.rememberConfig()
-      this.guard = new Guard(this)
-      this.protect()
-    }
-
     async paste(event) {
-      const { html, string, range } = event.paste
-      let content = html || string || ''
-      const pastedElement = this.createTemplateElement(content)
-      const pastedURLs = extractURLs(pastedElement)
-
-      // no URLs were pasted, let Trix handle it .............................................................
-      if (!pastedURLs.length) return
-
-      event.preventDefault()
-
-      this.editor.setSelectedRange(range)
-      const hosts = await this.hosts
-      const renderer = new Renderer(this)
+      if (this.formElement) this.formElement.pasting = true
 
       try {
-        // Media URLs (images, videos, audio etc.)
-        let mediaURLs = new Set(pastedURLs.filter(url => getMediaType(url)))
-        const iframes = [...pastedElement.querySelectorAll('iframe')]
-        iframes.forEach(frame => mediaURLs.add(frame.src))
-        mediaURLs = [...mediaURLs]
-        const validMediaURLs = mediaURLs.filter(url => validateURL(url, hosts))
-        const invalidMediaURLs = mediaURLs.filter(url => !validMediaURLs.includes(url))
+        const { html, string, range } = event.paste
+        let content = html || string || ''
+        const pastedElement = this.createTemplateElement(content)
+        const pastedURLs = extractURLs(pastedElement)
 
-        // Standard URLs (non-media resources i.e. web pages etc.)
-        const standardURLs = pastedURLs.filter(url => !mediaURLs.includes(url))
-        const validStandardURLs = standardURLs.filter(url => validateURL(url, hosts))
-        const invalidStandardURLs = standardURLs.filter(url => !validStandardURLs.includes(url))
+        // no URLs were pasted, let Trix handle it .............................................................
+        if (!pastedURLs.length) return
 
-        // all invalid URLs
-        const invalidURLs = [...invalidMediaURLs, ...invalidStandardURLs]
+        event.preventDefault()
 
-        // 1. render warnings ................................................................................
-        if (invalidURLs.length) await this.insert(renderer.renderWarnings(invalidURLs, hosts.sort()))
+        this.editor.setSelectedRange(range)
+        const hosts = await this.hosts
+        const renderer = new Renderer(this)
 
-        // 2. render valid media urls (i.e. embeds) ..........................................................
-        if (validMediaURLs.length) await this.insert(renderer.renderEmbeds(validMediaURLs))
+        try {
+          // Media URLs (images, videos, audio etc.)
+          let mediaURLs = new Set(pastedURLs.filter(url => getMediaType(url)))
+          const iframes = [...pastedElement.querySelectorAll('iframe')]
+          iframes.forEach(frame => mediaURLs.add(frame.src))
+          mediaURLs = [...mediaURLs]
+          const validMediaURLs = mediaURLs.filter(url => validateURL(url, hosts))
+          const invalidMediaURLs = mediaURLs.filter(url => !validMediaURLs.includes(url))
 
-        // 3. exit early if there is only 1 URL and it's a valid media URL (i.e. a single embed) .............
-        if (pastedURLs.length === 1 && validMediaURLs.length === 1) return
+          // Standard URLs (non-media resources i.e. web pages etc.)
+          const standardURLs = pastedURLs.filter(url => !mediaURLs.includes(url))
+          const validStandardURLs = standardURLs.filter(url => validateURL(url, hosts))
+          const invalidStandardURLs = standardURLs.filter(url => !validStandardURLs.includes(url))
 
-        // 4. render the pasted content as  HTML .............................................................
-        const sanitizedPastedElement = this.sanitizePastedElement(pastedElement, {
-          renderer,
-          validMediaURLs,
-          validStandardURLs
-        })
-        const sanitizedPastedContent = sanitizedPastedElement.innerHTML.trim()
-        if (sanitizedPastedContent.length)
-          await this.insert(sanitizedPastedContent, { disposition: 'inline' })
-      } catch (e) {
-        this.insert(renderer.renderError(e))
+          // all invalid URLs
+          const invalidURLs = [...invalidMediaURLs, ...invalidStandardURLs]
+
+          // 1. render warnings ................................................................................
+          if (invalidURLs.length) await this.insert(renderer.renderWarnings(invalidURLs, hosts.sort()))
+
+          // 2. render valid media urls (i.e. embeds) ..........................................................
+          if (validMediaURLs.length) await this.insert(renderer.renderEmbeds(validMediaURLs))
+
+          // 3. exit early if there is only 1 URL and it's a valid media URL (i.e. a single embed) .............
+          if (pastedURLs.length === 1 && validMediaURLs.length === 1) return
+
+          // 4. render the pasted content as  HTML .............................................................
+          const sanitizedPastedElement = this.sanitizePastedElement(pastedElement, {
+            renderer,
+            validMediaURLs,
+            validStandardURLs
+          })
+          const sanitizedPastedContent = sanitizedPastedElement.innerHTML.trim()
+          if (sanitizedPastedContent.length)
+            await this.insert(sanitizedPastedContent, { disposition: 'inline' })
+        } catch (e) {
+          this.insert(renderer.renderError(e))
+        }
+      } finally {
+        if (this.formElement) delete this.formElement.pasting
       }
     }
 

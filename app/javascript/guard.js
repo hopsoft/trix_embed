@@ -7,7 +7,12 @@ function protectionKey(form) {
 function protect(event) {
   const form = event.target.closest('form')
   const key = protectionKey(form)
-  if (protectedForms[key] && !protectedForms[key].has(form)) event.preventDefault()
+
+  if (!protectedForms[key]) return
+
+  const forms = [...protectedForms[key]]
+  const match = forms.find(f => f === form)
+  if (!match || match.pasting) event.preventDefault()
 }
 
 document.addEventListener('submit', protect, true)
