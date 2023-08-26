@@ -170,12 +170,12 @@ export default class Renderer {
 
     return this.render('warning', {
       header: 'Copy/Paste Warning',
-      subheader: 'The pasted content includes media from unsupported hosts.',
+      subheader: 'Content includes URLs or media from prohibited hosts or restricted protocols.',
       prohibited: {
         header: 'Prohibited Hosts',
         hosts: hosts.length
           ? hosts.map(host => `<li>${host}</li>`).join('')
-          : '<li>Media is only supported from allowed hosts.</li>'
+          : '<li>URLs and media are restricted to allowed hosts and standard protocols.</li>'
       },
       allowed: {
         header: 'Allowed Hosts',

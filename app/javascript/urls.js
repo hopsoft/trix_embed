@@ -74,8 +74,18 @@ function extractURLsFromElementNodes(element) {
 }
 
 export function validateURL(value, allowedHosts = []) {
+  const permissive = allowedHosts.includes('*')
   const host = extractURLHost(value)
-  return host ? !!allowedHosts.find(allowedHost => host.includes(allowedHost)) : false
+
+  if (permissive) {
+    if (host) return true
+    if (value.startsWith('data:')) return true
+    if (value.startsWith('news:')) return true
+    if (value.startsWith('tel:')) return true
+    return false
+  }
+
+  return !!allowedHosts.find(allowedHost => host.endsWith(allowedHost))
 }
 
 export function extractURLHosts(values) {
