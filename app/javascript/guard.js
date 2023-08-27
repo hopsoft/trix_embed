@@ -1,3 +1,5 @@
+import { trixEditorTag } from './media'
+
 const protectedForms = {}
 
 function protectionKey(form) {
@@ -5,14 +7,29 @@ function protectionKey(form) {
 }
 
 function protect(event) {
-  const form = event.target.closest('form')
-  const key = protectionKey(form)
+  const submittingForm = event.target.closest('form')
+  const key = protectionKey(submittingForm)
+  const protectedForms = [...protectedForms[key]]
 
-  if (!protectedForms[key]) return
+  if (!protectedForms.length) return
 
-  const forms = [...protectedForms[key]]
-  const match = forms.find(f => f === form)
-  if (!match || match.pasting) event.preventDefault()
+  const form = protectedForms.find(f => f === submittingForm)
+  if (form?.pasting) event.preventDefault()
+  if (form) return
+
+  const protectedInputs = protectedForms.reduce((memo, form) => {
+    const editor = form.closest(trixEditorTag)
+    const input = form.querySelector(`#${editor.getAttribute('input')}`)
+    if (input) memo.push(input)
+    return memo
+  }, [])
+
+  protectedInputs.forEach(protectedInput => {
+    const submittingInput =
+      submittingForm.querySlector(`[name="${protectedInput.name}"]`) ||
+      submittingForm.querySlector(`#${protectedInput.id}`)
+    if (submittingInput) return event.preventDefault()
+  })
 }
 
 document.addEventListener('submit', protect, true)

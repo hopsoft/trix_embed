@@ -81,6 +81,7 @@ const tagsWithSrcAttribute = [
 ]
 
 // TODO: move to schema.js
+export const trixEditorTag = 'trix-editor'
 export const trixAttachmentTag = 'action-text-attachment'
 
 export const mediaTags = tagsWithHrefAttribute.concat(tagsWithSrcAttribute)

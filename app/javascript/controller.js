@@ -268,13 +268,13 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       return toolbar
     }
 
-    get inputElement() {
-      const id = this.element.getAttribute('input')
-      return id ? this.formElement?.querySelector(`#${id}`) || document.getElementById(id) : null
-    }
-
     get formElement() {
       return this.element.closest('form')
+    }
+
+    get inputElement() {
+      const id = this.element.getAttribute('input')
+      return id ? this.formElement?.querySelector(`#${id}`) : null
     }
 
     get paranoid() {
