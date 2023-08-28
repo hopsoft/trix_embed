@@ -33,9 +33,22 @@ const application = Application.start()
 TrixEmbed.initialize({ application, Controller, Trix })
 ```
 
-## Usage
+## Basic Usage
 
 ### Allow Lists
+
+- Allow everything
+
+```html
+<form>
+  <input id="content" name="content" type="hidden">
+  <trix-editor id="editor" input="content"
+    data-controller="trix-embed"
+    data-trix-embed-allowed-link-hosts-value='["*"]'
+    data-trix-embed-allowed-media-hosts-value='["*"]'>
+  </trix-editor>
+</form>
+```
 
 - Allow links to all sites
 - Allow embedded media (images, videos, etc.) from the following hosts:
@@ -57,64 +70,51 @@ TrixEmbed.initialize({ application, Controller, Trix })
 
 ### Block Lists
 
+- Block everything
+
+    ```html
+    <form>
+      <input id="content" name="content" type="hidden">
+      <trix-editor id="editor" input="content"
+        data-controller="trix-embed"
+        data-trix-embed-block-link-hosts-value='["*"]'
+        data-trix-embed-block-media-hosts-value='["*"]'>
+      </trix-editor>
+    </form>
+    ```
+
+  ...or simply.
+
+    ```html
+    <form>
+      <input id="content" name="content" type="hidden">
+      <trix-editor id="editor" input="content" data-controller="trix-embed">
+      </trix-editor>
+    </form>
+    ```
+
 - Block links to the following sites
 
   * `4chan.org`
   * `8chan.net`
   * `thepiratebay.org`
 
-- Block media (images, videos, etc.) from the following list of hosts:
+  Block media (images, videos, etc.) from the following list of hosts:
 
   * `deviantart.com`
   * `imgur.com`
   * `tumblr.com`
 
-```html
-<form>
-  <input id="content" name="content" type="hidden">
-  <trix-editor id="editor" input="content"
-    data-controller="trix-embed"
-    data-trix-embed-blocked-link-hosts-value='["4chan.org", "8chan.net", "thepiratebay.org"]'
-    data-trix-embed-blocked-media-hosts-value='["deviantart.com", "imgur.com", "tumblr.com"]'>
-  </trix-editor>
-</form>
-```
-
-### Allow Everything
-
-```html
-<form>
-  <input id="content" name="content" type="hidden">
-  <trix-editor id="editor" input="content"
-    data-controller="trix-embed"
-    data-trix-embed-allowed-link-hosts-value='["*"]'
-    data-trix-embed-allowed-media-hosts-value='["*"]'>
-  </trix-editor>
-</form>
-```
-
-### Block Everything
-
-```html
-<form>
-  <input id="content" name="content" type="hidden">
-  <trix-editor id="editor" input="content"
-    data-controller="trix-embed"
-    data-trix-embed-block-link-hosts-value='["*"]'
-    data-trix-embed-block-media-hosts-value='["*"]'>
-  </trix-editor>
-</form>
-```
-
-...or simply.
-
-```html
-<form>
-  <input id="content" name="content" type="hidden">
-  <trix-editor id="editor" input="content" data-controller="trix-embed">
-  </trix-editor>
-</form>
-```
+    ```html
+    <form>
+      <input id="content" name="content" type="hidden">
+      <trix-editor id="editor" input="content"
+        data-controller="trix-embed"
+        data-trix-embed-blocked-link-hosts-value='["4chan.org", "8chan.net", "thepiratebay.org"]'
+        data-trix-embed-blocked-media-hosts-value='["deviantart.com", "imgur.com", "tumblr.com"]'>
+      </trix-editor>
+    </form>
+    ```
 
 ## Sponsors
 
