@@ -2,20 +2,23 @@
 
 Take control over what external links and embedded media is permitted in the Trix editor.
 
-## Features
+<!-- Tocer[start]: Auto-generated, don't remove. -->
 
-### Allow/Block Lists
+## Table of Contents
 
-Configure allow and/or block lists for external links and embedded media in your Trix editors.
+  - [Setup](#setup)
+  - [Features](#features)
+    - [Allow / Block Lists](#allow--block-lists)
+    - [Template Overrides](#template-overrides)
+  - [Basic Usage](#basic-usage)
+    - [Allow Lists](#allow-lists)
+    - [Block Lists](#block-lists)
+  - [Sponsors](#sponsors)
+  - [Developing](#developing)
+  - [Releasing](#releasing)
+  - [License](#license)
 
-- allowed link hosts
-- blocked link hosts
-- allowed media hosts
-- blocked media hosts
-
-_You can use wildcards `*` in any of the above lists._
-
-__Block lists have precendence.__
+<!-- Tocer[finish]: Auto-generated, don't remove. -->
 
 ## Setup
 
@@ -32,6 +35,25 @@ import TrixEmbed from 'trix-embed'
 const application = Application.start()
 TrixEmbed.initialize({ application, Controller, Trix })
 ```
+
+## Features
+
+### Allow / Block Lists
+
+Configure allow and/or block lists for external links and embedded media in your Trix editors.
+
+- allowed link hosts
+- blocked link hosts
+- allowed media hosts
+- blocked media hosts
+
+_You can use wildcards `*` in any of the above lists._
+
+__Block lists have precendence.__
+
+### Template Overrides
+
+TODO: document...
 
 ## Basic Usage
 
@@ -50,23 +72,24 @@ TrixEmbed.initialize({ application, Controller, Trix })
 </form>
 ```
 
-- Allow links to all sites
-- Allow embedded media (images, videos, etc.) from the following hosts:
+- Allow links to all hosts
+
+  Allow embedded media (images, videos, etc.) from the following hosts:
 
   * `vimeo.com`
   * `voomly.com`
   * `youtube.com`
 
-```html
-<form>
-  <input id="content" name="content" type="hidden">
-  <trix-editor id="editor" input="content"
-    data-controller="trix-embed"
-    data-trix-embed-allowed-link-hosts-value='["*"]'
-    data-trix-embed-allowed-media-hosts-value='["vimeo.com", "voomly.com", "youtube.com"]'>
-  </trix-editor>
-</form>
-```
+    ```html
+    <form>
+      <input id="content" name="content" type="hidden">
+      <trix-editor id="editor" input="content"
+        data-controller="trix-embed"
+        data-trix-embed-allowed-link-hosts-value='["*"]'
+        data-trix-embed-allowed-media-hosts-value='["vimeo.com", "voomly.com", "youtube.com"]'>
+      </trix-editor>
+    </form>
+    ```
 
 ### Block Lists
 
@@ -93,13 +116,13 @@ TrixEmbed.initialize({ application, Controller, Trix })
     </form>
     ```
 
-- Block links to the following sites
+- Block links to the following hosts
 
   * `4chan.org`
   * `8chan.net`
   * `thepiratebay.org`
 
-  Block media (images, videos, etc.) from the following list of hosts:
+  Block media (images, videos, etc.) from the following hosts
 
   * `deviantart.com`
   * `imgur.com`
