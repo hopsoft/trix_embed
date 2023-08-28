@@ -5,7 +5,7 @@ export default {
   embedded: `
     <span>
       <strong>{{label}}</strong>
-      <small>{{description}}</small>
+      <span>{{description}}</span>
       <del>{{url}}</del>
     </span>
   `,
@@ -13,6 +13,7 @@ export default {
   prohibited: `
     <span>
       <strong>{{label}}</strong>
+      <span>{{description}}</span>
       <del>{{url}}</del>
     </span>
   `,

@@ -157,7 +157,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
           const replacement =
             validLinkURLs.includes(url) || validLinkURLs.includes(url)
               ? renderer.render('link', { url, label: url })
-              : renderer.render('prohibited', { url, label: 'Prohibited URL' })
+              : renderer.render('prohibited', { url, label: 'Prohibited URL:', description: '' })
           textNode.replacements.add({ match, replacement })
         })
       }
@@ -176,7 +176,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
         const label = this.extractLabelFromElement(el, { default: url })
         const replacement = validLinkURLs.includes(url)
           ? renderer.render('link', { url, label })
-          : renderer.render('prohibited', { url, label: 'Prohibited link' })
+          : renderer.render('prohibited', { url, label: 'Prohibited Link:', description: `(${label})` })
         el.replaceWith(this.createTemplateElement(replacement))
       })
 
@@ -186,8 +186,8 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
         const label = this.extractLabelFromElement(el, { default: url })
 
         const replacement = validMediaURLs.includes(url)
-          ? renderer.render('embedded', { url, label: 'Allowed Media', description: '(embedded above)' })
-          : renderer.render('prohibited', { url, label: 'Prohibited media' })
+          ? renderer.render('embedded', { url, label: 'Allowed Media:', description: '(Embedded Above)' })
+          : renderer.render('prohibited', { url, label: 'Prohibited Media:', description: '' })
 
         el.replaceWith(this.createTemplateElement(replacement))
       })
