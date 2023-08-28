@@ -1,6 +1,21 @@
 # Trix Embed
 
-A Stimulus controller to safely embed external media in the Trix editor.
+Take control over what external links and embedded media is permitted in the Trix editor.
+
+## Features
+
+### Allow/Block Lists
+
+Configure allow and/or block lists for external links and embedded media in your Trix editors.
+
+- allowed link hosts
+- blocked link hosts
+- allowed media hosts
+- blocked media hosts
+
+_You can use wildcards `*` in any of the above lists._
+
+__Block lists have precendence.__
 
 ## Setup
 
