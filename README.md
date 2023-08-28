@@ -61,16 +61,16 @@ TODO: document...
 
 - Allow everything
 
-```html
-<form>
-  <input id="content" name="content" type="hidden">
-  <trix-editor id="editor" input="content"
-    data-controller="trix-embed"
-    data-trix-embed-allowed-link-hosts-value='["*"]'
-    data-trix-embed-allowed-media-hosts-value='["*"]'>
-  </trix-editor>
-</form>
-```
+    ```html
+    <form>
+      <input id="content" name="content" type="hidden">
+      <trix-editor id="editor" input="content"
+        data-controller="trix-embed"
+        data-trix-embed-allowed-link-hosts-value='["*"]'
+        data-trix-embed-allowed-media-hosts-value='["*"]'>
+      </trix-editor>
+    </form>
+    ```
 
 - Allow links to all hosts and allow media (images, videos, etc.) from the following hosts: `vimeo.com, voomly.com, youtube.com`
 
