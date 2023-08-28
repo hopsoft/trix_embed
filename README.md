@@ -1,6 +1,6 @@
 # Trix Embed
 
-Take control over what external links and embedded media is permitted in the Trix editor.
+Take control over what external links and embedded media is permitted in the Trix editor via copy/paste.
 
 <!-- Tocer[start]: Auto-generated, don't remove. -->
 
