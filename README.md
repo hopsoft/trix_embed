@@ -72,13 +72,7 @@ TODO: document...
 </form>
 ```
 
-- Allow links to all hosts
-
-  Allow embedded media (images, videos, etc.) from the following hosts
-
-  - `vimeo.com`
-  - `voomly.com`
-  - `youtube.com`
+- Allow links to all hosts and allow media (images, videos, etc.) from the following hosts: `vimeo.com, voomly.com, youtube.com`
 
     ```html
     <form>
@@ -116,17 +110,8 @@ TODO: document...
     </form>
     ```
 
-- Block links to the following hosts
-
-  - `4chan.org`
-  - `8chan.net`
-  - `thepiratebay.org`
-
-  Block media (images, videos, etc.) from the following hosts
-
-  - `deviantart.com`
-  - `imgur.com`
-  - `tumblr.com`
+- Block links to the following hosts: `4chan.org, 8chan.net, thepiratebay.org`
+  and block media (images, videos, etc.) from the following hosts: `deviantart.com, imgur.com, tumblr.com`
 
     ```html
     <form>
