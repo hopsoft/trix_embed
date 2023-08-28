@@ -1,6 +1,6 @@
 # Trix Embed
 
-Take control over what external links and embedded media is permitted in the Trix editor via copy/paste.
+#### Take control over what external links and embedded media is permitted in the Trix editor via copy/paste
 
 <!-- Tocer[start]: Auto-generated, don't remove. -->
 
@@ -74,11 +74,11 @@ TODO: document...
 
 - Allow links to all hosts
 
-  Allow embedded media (images, videos, etc.) from the following hosts:
+  Allow embedded media (images, videos, etc.) from the following hosts
 
-  * `vimeo.com`
-  * `voomly.com`
-  * `youtube.com`
+  - `vimeo.com`
+  - `voomly.com`
+  - `youtube.com`
 
     ```html
     <form>
@@ -118,15 +118,15 @@ TODO: document...
 
 - Block links to the following hosts
 
-  * `4chan.org`
-  * `8chan.net`
-  * `thepiratebay.org`
+  - `4chan.org`
+  - `8chan.net`
+  - `thepiratebay.org`
 
   Block media (images, videos, etc.) from the following hosts
 
-  * `deviantart.com`
-  * `imgur.com`
-  * `tumblr.com`
+  - `deviantart.com`
+  - `imgur.com`
+  - `tumblr.com`
 
     ```html
     <form>

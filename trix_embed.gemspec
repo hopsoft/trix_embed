@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.authors = ["Nate Hopkins (hopsoft)"]
   s.email = ["natehop@gmail.com"]
   s.homepage = "https://github.com/hopsoft/trix_embed"
-  s.summary = "A Stimulus controller to safely embed external media in the Trix editor"
+  s.summary = "Take control over what external links and embedded media is permitted in the Trix editor via copy/paste"
   s.description = s.summary
   s.license = "MIT"
 
