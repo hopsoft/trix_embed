@@ -50,7 +50,7 @@ try {
     format: 'esm',
     logLevel: 'debug',
     metafile: true,
-    minify: false,
+    minify: true,
     outfile,
     sourcemap: false,
     target: ['chrome79', 'edge44', 'es2020', 'firefox71', 'opera65', 'safari13'],
