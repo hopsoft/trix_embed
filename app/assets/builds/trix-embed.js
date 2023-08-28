@@ -377,8 +377,12 @@ var Guard = class {
     (_c = this.editor) == null ? void 0 : _c.addEventListener("trix-file-accept", (event) => event.preventDefault(), true);
     (_e = (_d = this.toolbar) == null ? void 0 : _d.querySelector('[data-trix-button-group="file-tools"]')) == null ? void 0 : _e.remove();
   }
-  preventLinks() {
+  async preventLinks() {
     var _a, _b;
+    const allowed = await this.controller.allowedLinkHosts;
+    const blocked = await this.controller.blockedLinkHosts;
+    if (!blocked.length && allowed.includes("*"))
+      return;
     (_b = (_a = this.toolbar) == null ? void 0 : _a.querySelector('[data-trix-action="link"]')) == null ? void 0 : _b.remove();
   }
   protect(attempt = 0) {
@@ -683,11 +687,12 @@ function getTrixEmbedControllerClass(options2 = { Controller: null, Trix: null }
     connect() {
       this.onpaste = this.paste.bind(this);
       this.element.addEventListener("trix-paste", this.onpaste, true);
-      this.rememberConfig();
       this.store = new Store(this);
       this.guard = new Guard(this);
-      if (this.paranoid)
-        this.guard.protect();
+      this.rememberConfig().then(() => {
+        if (this.paranoid)
+          this.guard.protect();
+      });
     }
     disconnect() {
       this.element.removeEventListener("trix-paste", this.onpaste, true);
@@ -919,39 +924,43 @@ function getTrixEmbedControllerClass(options2 = { Controller: null, Trix: null }
         "www.trix.test"
       ];
     }
-    async rememberConfig() {
-      const controller = this;
-      let fakes;
-      const key = await generateKey();
-      fakes = await encryptValues(key, sample(this.reservedDomains, 3));
-      this.store.write("key", JSON.stringify([fakes[0], fakes[1], key, fakes[2]]));
-      if (this.paranoidValue !== false) {
-        fakes = await encryptValues(key, sample(this.reservedDomains, 4));
-        this.store.write("paranoid", JSON.stringify(fakes));
-      }
-      this.element.removeAttribute("data-trix-embed-paranoid-value");
-      this.hostsValueDescriptors.forEach(async (descriptor) => {
-        const { name } = descriptor;
-        const property = name.slice(0, name.lastIndexOf("Value"));
-        let value = this[name];
-        if (value.length < 4)
-          value = value.concat(sample(this.reservedDomains, 4 - value.length));
-        this.store.write(property, JSON.stringify(await encryptValues(key, value)));
-        Object.assign(this, {
-          get [property]() {
-            try {
-              return decryptValues(controller.key, JSON.parse(controller.store.read(property)));
-            } catch (e) {
-              return [];
+    rememberConfig() {
+      return new Promise(async (resolve) => {
+        let fakes;
+        const key = await generateKey();
+        fakes = await encryptValues(key, sample(this.reservedDomains, 3));
+        this.store.write("key", JSON.stringify([fakes[0], fakes[1], key, fakes[2]]));
+        if (this.paranoidValue !== false) {
+          fakes = await encryptValues(key, sample(this.reservedDomains, 4));
+          this.store.write("paranoid", JSON.stringify(fakes));
+        }
+        this.element.removeAttribute("data-trix-embed-paranoid-value");
+        this.hostsValueDescriptors.forEach(async (descriptor) => {
+          const { name } = descriptor;
+          const property = name.slice(0, name.lastIndexOf("Value"));
+          let value = this[name];
+          if (value.length < 4)
+            value = value.concat(sample(this.reservedDomains, 4 - value.length));
+          this.store.write(property, JSON.stringify(await encryptValues(key, value)));
+          Object.defineProperty(this, property, {
+            get: async () => {
+              try {
+                const hosts = await decryptValues(this.key, JSON.parse(this.store.read(property)));
+                return hosts.filter((host) => !this.reservedDomains.includes(host));
+              } catch (error) {
+                console.error(`Failed to get '${property}'!`, error);
+                return [];
+              }
             }
-          }
+          });
+          this.element.removeAttribute(`data-trix-embed-${descriptor.key}`);
         });
-        this.element.removeAttribute(`data-trix-embed-${descriptor.key}`);
+        fakes = await encryptValues(key, sample(this.reservedDomains, 4));
+        this.store.write("securityHosts", fakes);
+        fakes = await encryptValues(key, sample(this.reservedDomains, 4));
+        this.store.write("obscurityHosts", fakes);
+        resolve();
       });
-      fakes = await encryptValues(key, sample(this.reservedDomains, 4));
-      this.store.write("securityHosts", fakes);
-      fakes = await encryptValues(key, sample(this.reservedDomains, 4));
-      this.store.write("obscurityHosts", fakes);
     }
     forgetConfig() {
       var _a2, _b, _c, _d;

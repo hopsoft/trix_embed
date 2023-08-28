@@ -46,7 +46,10 @@ export default class Guard {
     this.toolbar?.querySelector('[data-trix-button-group="file-tools"]')?.remove()
   }
 
-  preventLinks() {
+  async preventLinks() {
+    const allowed = await this.controller.allowedLinkHosts
+    const blocked = await this.controller.blockedLinkHosts
+    if (!blocked.length && allowed.includes('*')) return
     this.toolbar?.querySelector('[data-trix-action="link"]')?.remove()
   }
 
@@ -55,6 +58,7 @@ export default class Guard {
 
     this.preventAttachments()
     this.preventLinks()
+
     if (!this.form) return
     const key = protectionKey(this.form)
     protectedForms[key] = protectedForms[key] || new Set()

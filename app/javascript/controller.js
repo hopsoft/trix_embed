@@ -36,12 +36,11 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
     connect() {
       this.onpaste = this.paste.bind(this)
       this.element.addEventListener('trix-paste', this.onpaste, true)
-
-      this.rememberConfig()
-
       this.store = new Store(this)
       this.guard = new Guard(this)
-      if (this.paranoid) this.guard.protect()
+      this.rememberConfig().then(() => {
+        if (this.paranoid) this.guard.protect()
+      })
     }
 
     disconnect() {
@@ -338,55 +337,67 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       ]
     }
 
-    async rememberConfig() {
-      const controller = this
-      let fakes
+    rememberConfig() {
+      return new Promise(async resolve => {
+        let fakes
 
-      // encryption key
-      const key = await generateKey()
-      fakes = await encryptValues(key, sample(this.reservedDomains, 3))
-      this.store.write('key', JSON.stringify([fakes[0], fakes[1], key, fakes[2]]))
+        // encryption key
+        const key = await generateKey()
+        fakes = await encryptValues(key, sample(this.reservedDomains, 3))
+        this.store.write('key', JSON.stringify([fakes[0], fakes[1], key, fakes[2]]))
 
-      // paranoid
-      if (this.paranoidValue !== false) {
-        fakes = await encryptValues(key, sample(this.reservedDomains, 4))
-        this.store.write('paranoid', JSON.stringify(fakes))
-      }
-      this.element.removeAttribute('data-trix-embed-paranoid-value')
+        // paranoid
+        if (this.paranoidValue !== false) {
+          fakes = await encryptValues(key, sample(this.reservedDomains, 4))
+          this.store.write('paranoid', JSON.stringify(fakes))
+        }
+        this.element.removeAttribute('data-trix-embed-paranoid-value')
 
-      // host lists
-      this.hostsValueDescriptors.forEach(async descriptor => {
-        const { name } = descriptor
-        const property = name.slice(0, name.lastIndexOf('Value'))
+        // host lists
+        //
+        // - allowedLinkHosts
+        // - blockedLinkHosts
+        // - allowedMediaHosts
+        // - blockedMediaHosts
+        // - etc.
+        //
+        this.hostsValueDescriptors.forEach(async descriptor => {
+          const { name } = descriptor
+          const property = name.slice(0, name.lastIndexOf('Value'))
 
-        let value = this[name]
+          let value = this[name]
 
-        // ensure minimum length to help with security-through-obscurity
-        if (value.length < 4) value = value.concat(sample(this.reservedDomains, 4 - value.length))
+          // ensure minimum length to help with security-through-obscurity
+          if (value.length < 4) value = value.concat(sample(this.reservedDomains, 4 - value.length))
 
-        // store the property value
-        this.store.write(property, JSON.stringify(await encryptValues(key, value)))
+          // store the property value
+          this.store.write(property, JSON.stringify(await encryptValues(key, value)))
 
-        // create property getter
-        Object.assign(this, {
-          get [property]() {
-            try {
-              return decryptValues(controller.key, JSON.parse(controller.store.read(property)))
-            } catch {
-              return []
+          // create the property getter (returns a promise)
+          Object.defineProperty(this, property, {
+            get: async () => {
+              try {
+                const hosts = await decryptValues(this.key, JSON.parse(this.store.read(property)))
+                return hosts.filter(host => !this.reservedDomains.includes(host))
+              } catch (error) {
+                console.error(`Failed to get '${property}'!`, error)
+                return []
+              }
             }
-          }
+          })
+
+          // cleanup the dom
+          this.element.removeAttribute(`data-trix-embed-${descriptor.key}`)
         })
 
-        // cleanup the dom
-        this.element.removeAttribute(`data-trix-embed-${descriptor.key}`)
-      })
+        // more security-through-obscurity
+        fakes = await encryptValues(key, sample(this.reservedDomains, 4))
+        this.store.write('securityHosts', fakes)
+        fakes = await encryptValues(key, sample(this.reservedDomains, 4))
+        this.store.write('obscurityHosts', fakes)
 
-      // more security-through-obscurity
-      fakes = await encryptValues(key, sample(this.reservedDomains, 4))
-      this.store.write('securityHosts', fakes)
-      fakes = await encryptValues(key, sample(this.reservedDomains, 4))
-      this.store.write('obscurityHosts', fakes)
+        resolve()
+      })
     }
 
     forgetConfig() {
