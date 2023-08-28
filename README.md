@@ -42,14 +42,14 @@ TrixEmbed.initialize({ application, Controller, Trix })
 
 Configure allow and/or block lists for external links and embedded media in your Trix editors.
 
+__⚠︎ Block lists have precendence!__
+
 - allowed link hosts
 - blocked link hosts
 - allowed media hosts
 - blocked media hosts
 
-_You can use wildcards `*` in any of the above lists._
-
-__Block lists have precendence.__
+_Note that you can also use wildcards `*` in any of lists._
 
 ### Template Overrides
 
