@@ -1,4 +1,10 @@
-import { createURL } from './urls'
+import { createURLObject } from './urls'
+
+// Matches server side configuration
+// SEE: lib/trix_embed/engine.rb
+export const trixEmbedMediaTypes = {
+  attachment: 'trix-embed/attachment'
+}
 
 const audioMediaTypes = {
   mp3: 'audio/mpeg', // MP3 audio format
@@ -74,6 +80,10 @@ const tagsWithSrcAttribute = [
   'use' // SVG: Reuse shapes from other documents
 ]
 
+// TODO: move to schema.js
+export const trixEditorTag = 'trix-editor'
+export const trixAttachmentTag = 'action-text-attachment'
+
 export const mediaTags = tagsWithHrefAttribute.concat(tagsWithSrcAttribute)
 
 export function isAudio(url) {
@@ -91,7 +101,7 @@ export function isVideo(url) {
 export function getMediaType(value) {
   let url
 
-  createURL(value, u => (url = u))
+  url = createURLObject(value)
   if (!url) return null
 
   const index = url.pathname.lastIndexOf('.')

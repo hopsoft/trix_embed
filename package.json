@@ -3,7 +3,7 @@
   "name": "trix-embed",
   "version": "0.0.2",
   "repository": "https://github.com/hopsoft/trix_embed",
-  "description": "A Stimulus controller to safely embed external media in the Trix editor",
+  "description": "Take control over what external links and embedded media is permitted in the Trix editor via copy/paste",
   "keywords": [
     "actiontext",
     "stimulus",

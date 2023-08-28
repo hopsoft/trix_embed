@@ -16,7 +16,7 @@ module TrixEmbed
     config.trix_embed = ActiveSupport::OrderedOptions.new
 
     initializer "trix_embed.configuration" do
-      Mime::Type.register "application/vnd.trix-embed", :trix_embed
+      Mime::Type.register "trix-embed/attachment", :trix_embed_attachment
 
       ActiveSupport.on_load :action_controller do
         helper TrixEmbed::ApplicationHelper

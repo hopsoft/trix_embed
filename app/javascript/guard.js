@@ -1,4 +1,38 @@
-const submitGuards = {}
+import { trixEditorTag } from './media'
+
+const protectedForms = {}
+
+function protectionKey(form) {
+  return `${form?.method}:${form?.action}`.trim().toLowerCase()
+}
+
+function protect(event) {
+  const submittingForm = event.target.closest('form')
+  const key = protectionKey(submittingForm)
+  const protectedForms = [...protectedForms[key]]
+
+  if (!protectedForms.length) return
+
+  const form = protectedForms.find(f => f === submittingForm)
+  if (form?.pasting) event.preventDefault()
+  if (form) return
+
+  const protectedInputs = protectedForms.reduce((memo, form) => {
+    const editor = form.closest(trixEditorTag)
+    const input = form.querySelector(`#${editor.getAttribute('input')}`)
+    if (input) memo.push(input)
+    return memo
+  }, [])
+
+  protectedInputs.forEach(protectedInput => {
+    const submittingInput =
+      submittingForm.querySlector(`[name="${protectedInput.name}"]`) ||
+      submittingForm.querySlector(`#${protectedInput.id}`)
+    if (submittingInput) return event.preventDefault()
+  })
+}
+
+document.addEventListener('submit', protect, true)
 
 export default class Guard {
   constructor(controller) {
@@ -6,78 +40,40 @@ export default class Guard {
   }
 
   preventAttachments() {
-    this.controller.toolbarElement.querySelector('[data-trix-button-group="file-tools"]')?.remove()
-    this.controller.element.removeAttribute('data-direct-upload-url')
-    this.controller.element.removeAttribute('data-blob-url-template')
-    this.controller.element.addEventListener('trix-file-accept', event => event.preventDefault())
+    this.editor?.removeAttribute('data-direct-upload-url')
+    this.editor?.removeAttribute('data-blob-url-template')
+    this.editor?.addEventListener('trix-file-accept', event => event.preventDefault(), true)
+    this.toolbar?.querySelector('[data-trix-button-group="file-tools"]')?.remove()
   }
 
-  preventLinks() {
-    this.controller.toolbarElement.querySelector('[data-trix-action="link"]')?.remove()
+  async preventLinks() {
+    const allowed = await this.controller.allowedLinkHosts
+    const blocked = await this.controller.blockedLinkHosts
+    if (!blocked.length && allowed.includes('*')) return
+    this.toolbar?.querySelector('[data-trix-action="link"]')?.remove()
   }
 
-  protectSubmit = event => {
-    const form = this.controller.formElement
-    const f = event.target.closest('form')
-    if (f && f.action === form.action && f.method === form.method && f !== form) event.preventDefault()
-  }
+  protect(attempt = 0) {
+    if (!this.toolbar && attempt < 10) return setTimeout(() => this.protect(attempt + 1), 25)
 
-  protect() {
     this.preventAttachments()
     this.preventLinks()
 
-    if (!this.controller.formElement) return
-
-    const form = this.controller.formElement
-    const input = this.controller.inputElement
-    const key = `${form.method}${form.action}`
-
-    document.removeEventListener('submit', submitGuards[key], true)
-    submitGuards[key] = this.protectSubmit.bind(this)
-    document.addEventListener('submit', submitGuards[key], true)
-
-    const observer = new MutationObserver((mutations, observer) => {
-      mutations.forEach(mutation => {
-        const { addedNodes, target, type } = mutation
-
-        switch (type) {
-          case 'attributes':
-            const f = node.closest('form')
-            if (form?.action && form.action === f?.action) {
-              if (target.id === input.id || target.name === input.name) target.remove()
-            }
-            break
-          case 'childList':
-            addedNodes.forEach(node => {
-              if (node.nodeType === Node.ELEMENT_NODE) {
-                const f = node.closest('form')
-                if (form?.action && form.action === f?.action) {
-                  if (f !== form) node.remove()
-                } else if (input?.name && input.name === node?.name) {
-                  node.remove()
-                }
-              }
-            })
-            break
-        }
-      })
-    })
-
-    observer.observe(document.body, {
-      attributeFilter: ['id', 'name'],
-      attributes: true,
-      childList: true,
-      subtree: true
-    })
+    if (!this.form) return
+    const key = protectionKey(this.form)
+    protectedForms[key] = protectedForms[key] || new Set()
+    protectedForms[key].add(this.form)
   }
 
-  cleanup() {
-    const trix = this.controller.element
-    const input = this.controller.inputElement
-    const toolbar = this.controller.toolbarElement
+  get editor() {
+    return this.controller.element
+  }
 
-    input?.remove()
-    toolbar?.remove()
-    trix?.remove()
+  get toolbar() {
+    return this.controller.toolbarElement
+  }
+
+  get form() {
+    return this.controller.formElement
   }
 }

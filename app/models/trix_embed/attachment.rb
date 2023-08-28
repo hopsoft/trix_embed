@@ -6,7 +6,6 @@ module TrixEmbed
     include GlobalID::Identification
     include ActionText::Attachable
 
-    CONTENT_TYPE = "application/vnd.trix-embed"
     ALLOWED_TAGS = ActionText::ContentHelper.allowed_tags + %w[iframe]
     ALLOWED_ATTRIBUTES = (
       ActionText::ContentHelper.allowed_attributes + %w[
@@ -15,6 +14,10 @@ module TrixEmbed
         allowpaymentrequest
         credentialless
         csp
+        data-trix-embed
+        data-trix-embed-error
+        data-trix-embed-prohibited
+        data-trix-embed-warning
         loading
         referrerpolicy
         sandbox
@@ -24,7 +27,7 @@ module TrixEmbed
     class << self
       def rewrite_for_display(content)
         fragment = Nokogiri::HTML.fragment(content)
-        matches = fragment.css("#{ActionText::Attachment.tag_name}[sgid][content-type='#{CONTENT_TYPE}']")
+        matches = fragment.css("#{ActionText::Attachment.tag_name}[sgid][content-type='#{Mime::Type.lookup_by_extension(:trix_embed_attachment)}']")
 
         matches.each do |match|
           attachment = ActionText::Attachment.from_node(match)
@@ -50,7 +53,7 @@ module TrixEmbed
 
       def rewrite_for_storage(trix_html)
         fragment = Nokogiri::HTML.fragment(trix_html)
-        matches = fragment.css("[data-trix-attachment][data-trix-content-type='#{CONTENT_TYPE}']")
+        matches = fragment.css("[data-trix-attachment][data-trix-content-type='#{Mime::Type.lookup_by_extension(:trix_embed_attachment)}']")
 
         matches.each do |match|
           data = JSON.parse(match["data-trix-attachment"]).deep_transform_keys(&:underscore)

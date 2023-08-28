@@ -1,3 +1,4 @@
+import metadata from './metadata'
 import { generateKey, encryptValues, generateKeyAndEncryptValues } from './encryption'
 import { getTrixEmbedControllerClass } from './controller'
 
@@ -17,10 +18,11 @@ function initialize(options = defaultOptions) {
 }
 
 self.TrixEmbed = {
-  initialize,
-  generateKey,
+  ...metadata,
   encryptValues,
-  generateKeyAndEncryptValues
+  generateKey,
+  generateKeyAndEncryptValues,
+  initialize
 }
 
 export default self.TrixEmbed

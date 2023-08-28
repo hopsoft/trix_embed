@@ -1,35 +1,53 @@
-const defaults = {
-  header: `<div><h1></h1><hr></div>`,
-  iframe: `<div><iframe></iframe></div>`,
-  image: `<div><img></img></div>`,
+export default {
+  // inline templates ........................................................................................
+  link: `<a href='{{url}}'>{{label}}</a>`,
 
+  embedded: `
+    <span>
+      <strong>{{label}}</strong>
+      <span>{{description}}</span>
+      <del>{{url}}</del>
+    </span>
+  `,
+
+  prohibited: `
+    <span>
+      <strong>{{label}}</strong>
+      <span>{{description}}</span>
+      <del>{{url}}</del>
+    </span>
+  `,
+
+  // attachment templates ....................................................................................
   error: `
-    <div>
-      <h1>Copy/Paste Info</h1>
-      <hr>
-      <h3>The pasted content includes media from unsupported hosts.</h3>
-      <h2>Prohibited Hosts</h2>
-      <ul data-list="prohibited-hosts">
-        <li>Media is only supported from allowed hosts.</li>
-      </ul>
-      <h2>Allowed Hosts</h2>
-      <ul data-list="allowed-hosts">
-        <li>Allowed hosts not configured.</li>
-      </ul>
+    <div data-trix-embed data-trix-embed-error>
+      <h1>{{header}}</h1>
+      <pre><code>{{error.stack}}</code></pre>
     </div>
   `,
 
-  exception: `
-    <div style='background-color:lightyellow; color:red; border:solid 1px red; padding:20px;'>
-      <h1>Unhandled Exception!</h1>
-      <p>Show a programmer the message below.</p>
-      <pre style="background-color:darkslategray; color:whitesmoke; padding:10px;"><code></code></pre>
+  iframe: `
+    <div data-trix-embed>
+      <iframe src='{{src}}' loading='lazy' referrerpolicy='no-referrer' scrolling='no'></iframe>
+    </div>
+  `,
+
+  image: `
+    <div data-trix-embed>
+      <img src='{{src}}' loading='lazy'></img>
+    </div>
+  `,
+
+  warning: `
+    <div data-trix-embed data-trix-embed-warning>
+      <h1>{{header}}</h1>
+      <h3>{{subheader}}</h3>
+
+      <h2>{{prohibited.header}}</h2>
+      <ul>{{prohibited.hosts}}</ul>
+
+      <h2>{{allowed.header}}</h2>
+      <ul>{{allowed.hosts}}</ul>
     </div>
   `
-}
-
-export function getTemplate(name) {
-  const template = document.createElement('template')
-  template.innerHTML = defaults[name]
-  return template
 }

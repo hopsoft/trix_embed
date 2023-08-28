@@ -15,7 +15,10 @@
     <%= form.rich_text_area :body, placeholder: "Write something amazing...",
       data: {
         controller: "trix-embed",
-        trix_embed_hosts_value: ["clickfunnels.com", "giphy.com", "loom.com", "voomly.com"],
+        trix_embed_allowed_link_hosts_value: ["clickfunnels.com", "linkedin.com"],
+        trix_embed_blocked_link_hosts_value: [],
+        trix_embed_allowed_media_hosts_value: ["clickfunnels.com", "giphy.com", "loom.com", "vimeo.com", "voomly.com", "youtube.com"],
+        trix_embed_blocked_media_hosts_value: [],
         trix_embed_iframe_template_value: "iframe-template"
       } %>
   </div>

@@ -10,6 +10,6 @@ FileUtils.ln_s target, link, force: true, verbose: true unless File.exist?(link)
 
 pin "@hotwired/stimulus", to: "https://ga.jspm.io/npm:@hotwired/stimulus@3.2.2/dist/stimulus.js"
 pin "@rails/actiontext", to: "actiontext.js"
-pin "trix", to: "trix.js"
+pin "trix", to: "https://unpkg.com/trix@2.0.5/dist/trix.esm.js"
 pin "trix-embed", to: "trix-embed.js"
 pin "application", preload: true

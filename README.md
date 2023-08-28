@@ -1,6 +1,24 @@
 # Trix Embed
 
-A Stimulus controller to safely embed external media in the Trix editor.
+#### Take control over what external links and embedded media is permitted in the Trix editor via copy/paste
+
+<!-- Tocer[start]: Auto-generated, don't remove. -->
+
+## Table of Contents
+
+  - [Setup](#setup)
+  - [Features](#features)
+    - [Allow / Block Lists](#allow--block-lists)
+    - [Template Overrides](#template-overrides)
+  - [Basic Usage](#basic-usage)
+    - [Allow Lists](#allow-lists)
+    - [Block Lists](#block-lists)
+  - [Sponsors](#sponsors)
+  - [Developing](#developing)
+  - [Releasing](#releasing)
+  - [License](#license)
+
+<!-- Tocer[finish]: Auto-generated, don't remove. -->
 
 ## Setup
 
@@ -18,17 +36,93 @@ const application = Application.start()
 TrixEmbed.initialize({ application, Controller, Trix })
 ```
 
-## Usage
+## Features
 
-```html
-<form>
-  <input id="content" name="content" type="hidden">
-  <trix-editor id="editor" input="content"
-    data-controller="trix-embed"
-    data-trix-embed-hosts-value='["example.com", "test.com"]'>
-  </trix-editor>
-</form>
-```
+### Allow / Block Lists
+
+Configure allow and/or block lists for external links and embedded media in your Trix editors.
+
+__⚠︎ Block lists have precendence!__
+
+- allowed link hosts
+- blocked link hosts
+- allowed media hosts
+- blocked media hosts
+
+_Note that you can also use wildcards `*` in any of lists._
+
+### Template Overrides
+
+TODO: document...
+
+## Basic Usage
+
+### Allow Lists
+
+- Allow everything
+
+    ```html
+    <form>
+      <input id="content" name="content" type="hidden">
+      <trix-editor id="editor" input="content"
+        data-controller="trix-embed"
+        data-trix-embed-allowed-link-hosts-value='["*"]'
+        data-trix-embed-allowed-media-hosts-value='["*"]'>
+      </trix-editor>
+    </form>
+    ```
+
+- Allow links to all hosts and allow media (images, videos, etc.) from the following hosts: `vimeo.com, voomly.com, youtube.com`
+
+    ```html
+    <form>
+      <input id="content" name="content" type="hidden">
+      <trix-editor id="editor" input="content"
+        data-controller="trix-embed"
+        data-trix-embed-allowed-link-hosts-value='["*"]'
+        data-trix-embed-allowed-media-hosts-value='["vimeo.com", "voomly.com", "youtube.com"]'>
+      </trix-editor>
+    </form>
+    ```
+
+### Block Lists
+
+- Block everything
+
+    ```html
+    <form>
+      <input id="content" name="content" type="hidden">
+      <trix-editor id="editor" input="content"
+        data-controller="trix-embed"
+        data-trix-embed-block-link-hosts-value='["*"]'
+        data-trix-embed-block-media-hosts-value='["*"]'>
+      </trix-editor>
+    </form>
+    ```
+
+  ...or simply.
+
+    ```html
+    <form>
+      <input id="content" name="content" type="hidden">
+      <trix-editor id="editor" input="content" data-controller="trix-embed">
+      </trix-editor>
+    </form>
+    ```
+
+- Block links to the following hosts: `4chan.org, 8chan.net, thepiratebay.org`
+  and block media (images, videos, etc.) from the following hosts: `deviantart.com, imgur.com, tumblr.com`
+
+    ```html
+    <form>
+      <input id="content" name="content" type="hidden">
+      <trix-editor id="editor" input="content"
+        data-controller="trix-embed"
+        data-trix-embed-blocked-link-hosts-value='["4chan.org", "8chan.net", "thepiratebay.org"]'
+        data-trix-embed-blocked-media-hosts-value='["deviantart.com", "imgur.com", "tumblr.com"]'>
+      </trix-editor>
+    </form>
+    ```
 
 ## Sponsors
 
@@ -53,7 +147,7 @@ bin/dev
 
 1. Run `yarn` and `bundle` to pick up the latest
 1. Bump version number at `lib/trix_embed/version.rb`. Pre-release versions use `.preN`
-1. Run `yarn build`
+1. Run `yarn build` - *builds both the Ruby gem and the NPM package*
 1. Commit and push changes to GitHub
 1. Run `rake release`
 1. Run `yarn publish --no-git-tag-version --access public`
