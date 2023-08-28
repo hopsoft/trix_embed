@@ -1,3 +1,4 @@
+import { sample, shuffle } from './enumerable'
 import { generateKey, encryptValues, decryptValues } from './encryption'
 import {
   createURLObject,
@@ -25,7 +26,10 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       warningTemplate: String, // dom id of template to use when invalid embeds are detected
 
       // security related values
-      hosts: Array, // list of hosts/domains that embeds are allowed from
+      allowedLinkHosts: Array, // list of hosts/domains that links are allowed from
+      blockedLinkHosts: Array, // list of hosts/domains that links are NOT allowed from
+      allowedMediaHosts: Array, // list of hosts/domains that media is allowed from
+      blockedMediaHosts: Array, // list of hosts/domains that media is NOT allowed from
       paranoid: { type: Boolean, default: true } // guard against attacks
     }
 
@@ -58,30 +62,41 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
         if (!pastedURLs.length) return
 
         event.preventDefault()
-
         this.editor.setSelectedRange(range)
-        const hosts = await this.hosts
-        const renderer = new Renderer(this)
 
         try {
+          const renderer = new Renderer(this)
+
           // Media URLs (images, videos, audio etc.)
+          const allowedMediaHosts = await this.allowedMediaHosts
+          const blockedMediaHosts = await this.blockedMediaHosts
           let mediaURLs = new Set(pastedURLs.filter(url => getMediaType(url)))
           const iframes = [...pastedElement.querySelectorAll('iframe')]
           iframes.forEach(frame => mediaURLs.add(frame.src))
           mediaURLs = [...mediaURLs]
-          const validMediaURLs = mediaURLs.filter(url => validateURL(url, hosts))
+          const validMediaURLs = mediaURLs.filter(url =>
+            validateURL(url, allowedMediaHosts, blockedMediaHosts)
+          )
           const invalidMediaURLs = mediaURLs.filter(url => !validMediaURLs.includes(url))
 
-          // Standard URLs (non-media resources i.e. web pages etc.)
-          const standardURLs = pastedURLs.filter(url => !mediaURLs.includes(url))
-          const validStandardURLs = standardURLs.filter(url => validateURL(url, hosts))
-          const invalidStandardURLs = standardURLs.filter(url => !validStandardURLs.includes(url))
-
-          // all invalid URLs
-          const invalidURLs = [...invalidMediaURLs, ...invalidStandardURLs]
+          // Link URLs (non-media resources i.e. web pages etc.)
+          const allowedLinkHosts = await this.allowedLinkHosts
+          const blockedLinkHosts = await this.blockedLinkHosts
+          const linkURLs = pastedURLs.filter(url => !mediaURLs.includes(url))
+          const validLinkURLs = linkURLs.filter(url => validateURL(url, allowedLinkHosts, blockedLinkHosts))
+          const invalidLinkURLs = linkURLs.filter(url => !validLinkURLs.includes(url))
 
           // 1. render warnings ................................................................................
-          if (invalidURLs.length) await this.insert(renderer.renderWarnings(invalidURLs, hosts.sort()))
+          if (invalidMediaURLs.length || invalidLinkURLs.length) {
+            const invalidURLs = [...new Set([...invalidMediaURLs, ...invalidLinkURLs])]
+            const allowedHosts = [...new Set([...allowedMediaHosts, ...allowedLinkHosts])].filter(
+              host => !this.reservedDomains.includes(host)
+            )
+            const blockedHosts = [...new Set([...blockedMediaHosts, ...blockedLinkHosts])].filter(
+              host => !this.reservedDomains.includes(host)
+            )
+            await this.insert(renderer.renderWarnings(invalidURLs, allowedHosts, blockedHosts))
+          }
 
           // 2. render valid media urls (i.e. embeds) ..........................................................
           if (validMediaURLs.length) await this.insert(renderer.renderEmbeds(validMediaURLs))
@@ -93,7 +108,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
           const sanitizedPastedElement = this.sanitizePastedElement(pastedElement, {
             renderer,
             validMediaURLs,
-            validStandardURLs
+            validLinkURLs
           })
           const sanitizedPastedContent = sanitizedPastedElement.innerHTML.trim()
           if (sanitizedPastedContent.length)
@@ -122,8 +137,8 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       return options.default
     }
 
-    sanitizePastedElement(element, options = { renderer: null, validMediaURLs: [], validStandardURLs: [] }) {
-      const { renderer, validMediaURLs, validStandardURLs } = options
+    sanitizePastedElement(element, options = { renderer: null, validMediaURLs: [], validLinkURLs: [] }) {
+      const { renderer, validMediaURLs, validLinkURLs } = options
 
       element = element.cloneNode(true)
 
@@ -141,7 +156,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
         matches.forEach(match => {
           const url = createURLObject(match)?.href
           const replacement =
-            validStandardURLs.includes(url) || validStandardURLs.includes(url)
+            validLinkURLs.includes(url) || validLinkURLs.includes(url)
               ? renderer.render('link', { url, label: url })
               : renderer.render('prohibited', { url, label: 'Prohibited URL' })
           textNode.replacements.add({ match, replacement })
@@ -160,7 +175,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       element.querySelectorAll('a').forEach(el => {
         const url = extractURLFromElement(el)
         const label = this.extractLabelFromElement(el, { default: url })
-        const replacement = validStandardURLs.includes(url)
+        const replacement = validLinkURLs.includes(url)
           ? renderer.render('link', { url, label })
           : renderer.render('prohibited', { url, label: 'Prohibited link' })
         el.replaceWith(this.createTemplateElement(replacement))
@@ -287,12 +302,10 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       } catch {}
     }
 
-    get hosts() {
-      try {
-        return decryptValues(this.key, JSON.parse(this.store.read('hosts')))
-      } catch {
-        return []
-      }
+    get hostsValueDescriptors() {
+      return Object.values(this.valueDescriptorMap).filter(descriptor =>
+        descriptor.name.endsWith('HostsValue')
+      )
     }
 
     get reservedDomains() {
@@ -326,31 +339,68 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
     }
 
     async rememberConfig() {
+      const controller = this
+      let fakes
+
+      // encryption key
       const key = await generateKey()
-
-      let fakes = new Set()
-      while (fakes.size < 3)
-        fakes.add(this.reservedDomains[Math.floor(Math.random() * this.reservedDomains.length)])
-      fakes = await encryptValues(key, [...fakes])
-
-      const hosts = await encryptValues(key, this.hostsValue)
-
+      fakes = await encryptValues(key, sample(this.reservedDomains, 3))
       this.store.write('key', JSON.stringify([fakes[0], fakes[1], key, fakes[2]]))
-      this.element.removeAttribute('data-trix-embed-key-value')
 
-      this.store.write('hosts', JSON.stringify(hosts))
-      this.element.removeAttribute('data-trix-embed-hosts-value')
-
+      // paranoid
       if (this.paranoidValue !== false) {
-        this.store.write('paranoid', JSON.stringify(fakes.slice(3)))
-        this.element.removeAttribute('data-trix-embed-paranoid')
+        fakes = await encryptValues(key, sample(this.reservedDomains, 4))
+        this.store.write('paranoid', JSON.stringify(fakes))
       }
+      this.element.removeAttribute('data-trix-embed-paranoid-value')
+
+      // host lists
+      this.hostsValueDescriptors.forEach(async descriptor => {
+        const { name } = descriptor
+        const property = name.slice(0, name.lastIndexOf('Value'))
+
+        let value = this[name]
+
+        // ensure minimum length to help with security-through-obscurity
+        if (value.length < 4) value = value.concat(sample(this.reservedDomains, 4 - value.length))
+
+        // store the property value
+        this.store.write(property, JSON.stringify(await encryptValues(key, value)))
+
+        // create property getter
+        Object.assign(this, {
+          get [property]() {
+            try {
+              return decryptValues(controller.key, JSON.parse(controller.store.read(property)))
+            } catch {
+              return []
+            }
+          }
+        })
+
+        // cleanup the dom
+        this.element.removeAttribute(`data-trix-embed-${descriptor.key}`)
+      })
+
+      // more security-through-obscurity
+      fakes = await encryptValues(key, sample(this.reservedDomains, 4))
+      this.store.write('securityHosts', fakes)
+      fakes = await encryptValues(key, sample(this.reservedDomains, 4))
+      this.store.write('obscurityHosts', fakes)
     }
 
     forgetConfig() {
       this.store?.remove('key')
-      this.store?.remove('hosts')
       this.store?.remove('paranoid')
+
+      this.hostsValueDescriptors.forEach(async descriptor => {
+        const { name } = descriptor
+        const property = name.slice(0, name.lastIndexOf('Value'))
+        this.store?.remove('securityHosts')
+      })
+
+      this.store?.remove('securityHosts')
+      this.store?.remove('obscurityHosts')
     }
   }
 }

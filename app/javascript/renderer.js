@@ -163,10 +163,16 @@ export default class Renderer {
   // @param {String[]} allowedHosts - list of allowed hosts
   // @returns {String} HTML
   //
-  renderWarnings(urls = ['https://example.com', 'https://test.com'], allowedHosts = []) {
+  renderWarnings(urls = ['https://example.com', 'https://test.com'], allowedHosts = [], blockedHosts = []) {
     if (!urls?.length) return
 
-    const hosts = extractURLHosts(urls).sort()
+    allowedHosts = [...allowedHosts].sort()
+    if (allowedHosts.includes('*')) allowedHosts.splice(allowedHosts.indexOf('*'), 1)
+
+    blockedHosts = [...blockedHosts]
+    if (blockedHosts.includes('*')) blockedHosts.splice(blockedHosts.indexOf('*'), 1)
+
+    const hosts = [...new Set([...blockedHosts, ...extractURLHosts(urls)])].sort()
 
     return this.render('warning', {
       header: 'Copy/Paste Warning',
