@@ -30,7 +30,7 @@ function shouldSubmit(form) {
   // form is not protected
   if (!list.length) return true
 
-  // form is current pasting a trix-embed
+  // form contains a trix-embed and it's currently pasting
   if (form.trixEmbedPasting) return false
 
   // form contains a trix-embed and it's not currently pasting
