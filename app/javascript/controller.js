@@ -39,11 +39,11 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
 
       // forget config when navigating away
       this.onBeforeFetchResponse = this.beforeFetchResponse.bind(this)
-      window.addEventListener('turbo:before-fetch-response', this.onBeforeFetchResponse, true)
+      addEventListener('turbo:before-fetch-response', this.onBeforeFetchResponse, true)
 
       // forget config when navigating away
       this.onBeforeUnload = this.forgetConfig.bind(this)
-      window.addEventListener('beforeunload', this.onBeforeUnload, true)
+      addEventListener('beforeunload', this.onBeforeUnload, true)
 
       this.store = new Store(this)
       this.guard = new Guard(this)
@@ -64,8 +64,8 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
 
     disconnect() {
       this.element.removeEventListener('trix-paste', this.onPaste, true)
-      window.removeEventListener('turbo:before-fetch-response', this.onBeforeFetchResponse, true)
-      window.removeEventListener('beforeunload', this.onBeforeUnload, true)
+      removeEventListener('turbo:before-fetch-response', this.onBeforeFetchResponse, true)
+      removeEventListener('beforeunload', this.onBeforeUnload, true)
       this.reconnect() // can't get rid of this controller after it's been connected
     }
 

@@ -90,7 +90,9 @@ function patch() {
   Object.defineProperty(Document.prototype, 'createElement', _patch)
 }
 
-function observe() {
+function observe(attempt = 0) {
+  if (!document.body && attempt < 10) return setTimeout(() => observe(attempt + 1), 50)
+
   if (_observer) return
 
   _observer = new MutationObserver(mutations =>
@@ -107,6 +109,7 @@ function observe() {
   })
 }
 
+addEventListener('load', () => observe())
 patch()
 observe()
 
@@ -114,7 +117,7 @@ observe()
 document.querySelectorAll('form').forEach(form => monitor(form))
 
 // TODO: protect XHR POST requests
-// document.addEventListener('readystatechange', event => {
+// addEventListener('readystatechange', event => {
 //   const xhr = event.target
 //   if (xhr instanceof XMLHttpRequest && xhr.readyState === 1) {
 //     // if (should not submit)
@@ -123,7 +126,7 @@ document.querySelectorAll('form').forEach(form => monitor(form))
 // })
 
 // TODO: protect fetch POST requests
-// window.addEventListener('fetch', event => {
+// addEventListener('fetch', event => {
 //   // if (should not submit)
 //   // event.preventDefault()
 // })
