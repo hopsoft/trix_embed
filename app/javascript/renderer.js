@@ -1,11 +1,11 @@
 import { createURLObject, extractURLHosts } from './urls'
-import { isImage, getMediaType, trixAttachmentTag, trixEmbedMediaTypes } from './media'
+import { isImage, getMediaType, trixAttachmentTagName, trixEmbedMediaTypes } from './media'
 import templates from './templates'
 
 // Matches server side configuration
 // SEE: TrixEmbed::Attachment::ALLOWED_TAGS (app/models/trix_embed/attachment.rb)
 const ALLOWED_TAGS = [
-  trixAttachmentTag,
+  trixAttachmentTagName,
   'a',
   'abbr',
   'acronym',
