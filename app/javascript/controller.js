@@ -7,7 +7,7 @@ import {
   extractURLFromElement,
   validateURL
 } from './urls'
-import { getMediaType, mediaTags, trixAttachmentTag, trixEmbedMediaTypes } from './media'
+import { getMediaType, mediaTags, trixAttachmentTagName, trixEmbedMediaTypes } from './media'
 import Guard from './guard'
 import Store from './store'
 import Renderer from './renderer'
@@ -50,7 +50,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
     }
 
     async paste(event) {
-      if (this.formElement) this.formElement.pasting = true
+      if (this.formElement) this.formElement.trixEmbedPasting = true
 
       try {
         const { html, string, range } = event.paste
@@ -117,7 +117,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
           this.insert(renderer.renderError(e))
         }
       } finally {
-        if (this.formElement) delete this.formElement.pasting
+        if (this.formElement) delete this.formElement.trixEmbedPasting
       }
     }
 

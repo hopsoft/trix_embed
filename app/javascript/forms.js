@@ -1,8 +1,10 @@
-import { trixEditorTag } from './media'
+import { trixEditorTagName } from './media'
+import { createURLObject } from './urls'
 
 let patched
 let observer
-const protectedForms = {}
+const protectedForms = new Set()
+const trixEmbedSelector = `${trixEditorTagName}[data-controller="trix-embed"]`
 
 const events = {
   add: 'trix-embed:form:add',
@@ -10,39 +12,39 @@ const events = {
 }
 
 function makeKey(form) {
-  return `${form?.method}:${form?.action}`.trim().toLowerCase()
+  let { method, action } = form || {}
+  action = createURLObject(action)?.pathname || action
+  return `${method}:${action}`.trim().toLowerCase()
 }
 
 function protect(form) {
   if (!form) return
-
-  const editor = form.closest(trixEditorTag)
-  const input = editor ? form.querySelector(`#${editor.getAttribute('input')}`) : {}
-  form.protectedInput = { id: input.id, name: input.name }
-
   const key = makeKey(form)
-  protectedForms[key] = protectedForms[key] || new Set()
-  protectedForms[key].add(form)
+  const { input } = form.guard || {}
+  protectedForms.add({ key, form, input })
 }
 
 function shouldSubmit(form) {
   const key = makeKey(form)
-  const protectedForms = [...protectedForms[key]]
-  const match = protectedForms.find(f => f === form)
+  const list = [...protetedForms].filter(f => f.key === key)
 
-  if (!protectedForms.length) return true
-  if (match?.pasting) return false
-  if (match) return true
+  // form is not protected
+  if (!list.length) return true
 
-  protectedForms
-    .map(form => form.protectedInput)
-    .forEach(input => {
-      if (input) {
-        if (input.name && form.querySlector(`[name="${input.name}"]`)) return false
-        if (input.id && form.querySlector(`#${input.id}`)) return false
-      }
-      return true
-    })
+  // form is current pasting a trix-embed
+  if (form.trixEmbedPasting) return false
+
+  // form contains a trix-embed and it's not currently pasting
+  if (form.querySelector(trixEmbedSelector)) return true
+
+  // form is protected but does not contain a trix-embed
+  // prevent submit if it contains a protected input
+  const inputs = list.map(item => item.input)
+  inputs.forEach(input => {
+    if (input.name && form.querySlector(`[name="${input.name}"]`)) return false
+    if (input.id && form.querySlector(`#${input.id}`)) return false
+    return true
+  })
 }
 
 function submit(event) {

@@ -24,7 +24,11 @@ export default class Guard {
 
     this.preventAttachments()
     this.preventLinks()
-    protectForm(this.form)
+
+    if (this.form) {
+      this.form.guard = this
+      protectForm(this.form)
+    }
   }
 
   get editor() {
@@ -37,5 +41,9 @@ export default class Guard {
 
   get form() {
     return this.controller.formElement
+  }
+
+  get input() {
+    return this.controller.inputElement
   }
 }
