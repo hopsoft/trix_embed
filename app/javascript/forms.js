@@ -1,15 +1,11 @@
 import { trixEditorTagName } from './media'
 import { createURLObject } from './urls'
 
-let patched
-let observer
+let _patch
+let _observer
+
 const protectedForms = new Set()
 const trixEmbedSelector = `${trixEditorTagName}[data-controller~="trix-embed"]`
-
-const events = {
-  add: 'trix-embed:form:add',
-  create: 'trix-embed:form:create'
-}
 
 function makeKey(form) {
   let { method, action } = form || {}
@@ -72,50 +68,40 @@ function monitor(form) {
   form.addEventListener('submit', submit, true)
 }
 
-function dispatch(name, form) {
-  document.dispatchEvent(
-    new CustomEvent(name, {
-      bubbles: false,
-      cancelable: false,
-      detail: { form }
-    })
-  )
-}
-
 function patch() {
-  if (patched) return
-  patched = true
+  if (_patch) return
 
   const orig = Document.prototype.createElement
-  Object.defineProperty(Document.prototype, 'createElement', {
+
+  _patch = {
     value: function () {
       const element = orig.apply(this, arguments)
 
       try {
         const tagName = String(arguments[0]).toUpperCase()
-        if (tagName === 'FORM') dispatch(events.form.create, element)
-      } catch (error) {
-        console.error(`Error during ${events.formCreate}`, error)
-      }
+        if (tagName === 'FORM') monitor(element)
+      } catch {}
 
       return element
     },
     configurable: false
-  })
+  }
+
+  Object.defineProperty(Document.prototype, 'createElement', _patch)
 }
 
 function observe() {
-  if (observer) return
+  if (_observer) return
 
-  observer = new MutationObserver(mutations =>
+  _observer = new MutationObserver(mutations =>
     mutations.forEach(mutation =>
       mutation.addedNodes.forEach(node => {
-        if (node instanceof HTMLFormElement) dispatch(events.form.add, element)
+        if (node instanceof HTMLFormElement) monitor(node)
       })
     )
   )
 
-  observer.observe(document.body, {
+  _observer.observe(document.body, {
     childList: true,
     subtree: true
   })
@@ -125,22 +111,20 @@ patch()
 observe()
 
 // monitor all forms
-document.addEventListener(events.add, event => monitor(event.target), true)
-document.addEventListener(events.create, event => monitor(event.target), true)
 document.querySelectorAll('form').forEach(form => monitor(form))
 
 // TODO: protect XHR POST requests
 // document.addEventListener('readystatechange', event => {
 //   const xhr = event.target
 //   if (xhr instanceof XMLHttpRequest && xhr.readyState === 1) {
-//     // if !shouldSubmit
+//     // if (should not submit)
 //     // xhr.send = xhr.abort
 //   }
 // })
 
 // TODO: protect fetch POST requests
 // window.addEventListener('fetch', event => {
-//   // if !shouldSubmit
+//   // if (should not submit)
 //   // event.preventDefault()
 // })
 
