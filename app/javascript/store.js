@@ -1,7 +1,19 @@
+import { createURLObject } from './urls'
+
 export default class Store {
   constructor(controller) {
+    const identifiers = [
+      location.pathname,
+      createURLObject(controller.formElement?.action)?.pathname,
+      controller.element.closest('[id]')?.id
+    ]
+
     this.controller = controller
-    this.base = this.obfuscate([location.pathname, this.controller.element.closest('[id]')?.id].join('/'))
+    this.identifier = identifiers
+      .filter(i => i && i.length)
+      .join('/')
+      .replace(/\/{2,}/g, '/')
+    this.base = this.obfuscate(this.identifier)
   }
 
   split(list) {

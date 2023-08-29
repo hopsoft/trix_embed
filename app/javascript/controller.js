@@ -34,10 +34,22 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
     }
 
     connect() {
-      this.onpaste = this.paste.bind(this)
-      this.element.addEventListener('trix-paste', this.onpaste, true)
+      this.onPaste = this.paste.bind(this)
+      this.element.addEventListener('trix-paste', this.onPaste, true)
+
+      // forget config when navigating away
+      this.onBeforeFetchResponse = this.beforeFetchResponse.bind(this)
+      window.addEventListener('turbo:before-fetch-response', this.onBeforeFetchResponse, true)
+
+      // forget config when navigating away
+      this.onBeforeUnload = this.forgetConfig.bind(this)
+      window.addEventListener('beforeunload', this.onBeforeUnload, true)
+
       this.store = new Store(this)
       this.guard = new Guard(this)
+
+      if (this.key) return // already configured
+
       this.rememberConfig().then(() => {
         if (this.paranoid) this.guard.protect()
       })
@@ -51,9 +63,17 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
     }
 
     disconnect() {
-      this.element.removeEventListener('trix-paste', this.onpaste, true)
-      this.forgetConfig()
+      this.element.removeEventListener('trix-paste', this.onPaste, true)
+      window.removeEventListener('turbo:before-fetch-response', this.onBeforeFetchResponse, true)
+      window.removeEventListener('beforeunload', this.onBeforeUnload, true)
       this.reconnect() // can't get rid of this controller after it's been connected
+    }
+
+    beforeFetchResponse(event) {
+      try {
+        const editors = event.target.querySelectorAll('trix-editor')
+        if (editors.includes(this.element)) this.forgetConfig()
+      } catch {}
     }
 
     async paste(event) {
@@ -306,7 +326,9 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
     get key() {
       try {
         return JSON.parse(this.store.read('key'))[2]
-      } catch {}
+      } catch {
+        return null
+      }
     }
 
     get hostsValueDescriptors() {
@@ -411,17 +433,19 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
     }
 
     forgetConfig() {
-      this.store?.remove('key')
-      this.store?.remove('paranoid')
+      try {
+        this.store?.remove('key')
+        this.store?.remove('paranoid')
 
-      this.hostsValueDescriptors.forEach(async descriptor => {
-        const { name } = descriptor
-        const property = name.slice(0, name.lastIndexOf('Value'))
+        this.hostsValueDescriptors.forEach(async descriptor => {
+          const { name } = descriptor
+          const property = name.slice(0, name.lastIndexOf('Value'))
+          this.store?.remove(property)
+        })
+
         this.store?.remove('securityHosts')
-      })
-
-      this.store?.remove('securityHosts')
-      this.store?.remove('obscurityHosts')
+        this.store?.remove('obscurityHosts')
+      } catch {}
     }
   }
 }

@@ -37,13 +37,29 @@ function shouldSubmit(form) {
   if (form.querySelector(trixEmbedSelector)) return true
 
   // form is protected but does not contain a trix-embed
-  // prevent submit if it contains a protected input
+  // prevent submit if any of the following conditions are true
+  //
+  // - the form data includes a protected key
+  // - the form action includes a protected querystring key
+  //
+  const data = new FormData(form)
+  const params = createURLObject(form.action)?.searchParams || new URLSearchParams()
   const inputs = list.map(item => item.input)
-  inputs.forEach(input => {
-    if (input.name && form.querySelector(`[name="${input.name}"]`)) return false
-    if (input.id && form.querySelector(`#${input.id}`)) return false
+  const checks = inputs.map(input => {
+    if (input.name) {
+      if (data.has(input.name)) return false
+      if (params.has(input.name)) return false
+    }
+
+    if (input.id) {
+      if (data.has(input.id)) return false
+      if (params.has(input.id)) return false
+    }
+
     return true
   })
+  if (checks.includes(false)) return false
+  return true
 }
 
 function submit(event) {
