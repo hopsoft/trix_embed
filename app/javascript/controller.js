@@ -12,7 +12,6 @@ import Guard from './guard'
 import Store from './store'
 import Renderer from './renderer'
 
-// TODO: prevent data-controller="trix-embed" from ever being removed
 export function getTrixEmbedControllerClass(options = { Controller: null, Trix: null }) {
   const { Controller, Trix } = options
   return class extends Controller {
@@ -44,9 +43,17 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       })
     }
 
+    reconnect() {
+      const value = this.element.getAttribute('data-controller') || ''
+      const values = new Set(value.split(' '))
+      values.add('trix-embed')
+      this.element.setAttribute('data-controller', [...values].join(' '))
+    }
+
     disconnect() {
       this.element.removeEventListener('trix-paste', this.onpaste, true)
       this.forgetConfig()
+      this.reconnect() // can't get rid of this controller after it's been connected
     }
 
     async paste(event) {
@@ -375,17 +382,19 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
           this.store.write(property, JSON.stringify(await encryptValues(key, value)))
 
           // create the property getter (returns a promise)
-          Object.defineProperty(this, property, {
-            get: async () => {
-              try {
-                const hosts = await decryptValues(this.key, JSON.parse(this.store.read(property)))
-                return hosts.filter(host => !this.reservedDomains.includes(host))
-              } catch (error) {
-                console.error(`Failed to get '${property}'!`, error)
-                return []
+          if (!this.hasOwnProperty(property)) {
+            Object.defineProperty(this, property, {
+              get: async () => {
+                try {
+                  const hosts = await decryptValues(this.key, JSON.parse(this.store.read(property)))
+                  return hosts.filter(host => !this.reservedDomains.includes(host))
+                } catch (error) {
+                  console.error(`Failed to get '${property}'!`, error)
+                  return []
+                }
               }
-            }
-          })
+            })
+          }
 
           // cleanup the dom
           this.element.removeAttribute(`data-trix-embed-${descriptor.key}`)
