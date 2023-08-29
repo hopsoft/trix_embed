@@ -1,38 +1,4 @@
-import { trixEditorTag } from './media'
-
-const protectedForms = {}
-
-function protectionKey(form) {
-  return `${form?.method}:${form?.action}`.trim().toLowerCase()
-}
-
-function protect(event) {
-  const submittingForm = event.target.closest('form')
-  const key = protectionKey(submittingForm)
-  const protectedForms = [...protectedForms[key]]
-
-  if (!protectedForms.length) return
-
-  const form = protectedForms.find(f => f === submittingForm)
-  if (form?.pasting) event.preventDefault()
-  if (form) return
-
-  const protectedInputs = protectedForms.reduce((memo, form) => {
-    const editor = form.closest(trixEditorTag)
-    const input = form.querySelector(`#${editor.getAttribute('input')}`)
-    if (input) memo.push(input)
-    return memo
-  }, [])
-
-  protectedInputs.forEach(protectedInput => {
-    const submittingInput =
-      submittingForm.querySlector(`[name="${protectedInput.name}"]`) ||
-      submittingForm.querySlector(`#${protectedInput.id}`)
-    if (submittingInput) return event.preventDefault()
-  })
-}
-
-document.addEventListener('submit', protect, true)
+import { protectForm } from './forms'
 
 export default class Guard {
   constructor(controller) {
@@ -58,11 +24,7 @@ export default class Guard {
 
     this.preventAttachments()
     this.preventLinks()
-
-    if (!this.form) return
-    const key = protectionKey(this.form)
-    protectedForms[key] = protectedForms[key] || new Set()
-    protectedForms[key].add(this.form)
+    protectForm(this.form)
   }
 
   get editor() {

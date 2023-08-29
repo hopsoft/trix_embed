@@ -20,10 +20,17 @@
 
 <!-- Tocer[finish]: Auto-generated, don't remove. -->
 
+## Dependencies
+
+- [ActionText](https://github.com/rails/rails/tree/main/actiontext)
+- [Stimulus](https://github.com/hotwired/stimulus)
+- [Trix](https://github.com/basecamp/trix)
+
 ## Setup
 
 ```sh
-yarn add @hotwired/stimulus trix trix-embed
+bundle add trix_embed
+yarn add trix-embed@$(bundle show trix_embed | ruby -ne 'puts $_.split(/-/).last')
 ```
 
 ```js

@@ -12,6 +12,7 @@ import Guard from './guard'
 import Store from './store'
 import Renderer from './renderer'
 
+// TODO: prevent data-controller="trix-embed" from ever being removed
 export function getTrixEmbedControllerClass(options = { Controller: null, Trix: null }) {
   const { Controller, Trix } = options
   return class extends Controller {
