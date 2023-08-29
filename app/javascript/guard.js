@@ -25,10 +25,7 @@ export default class Guard {
     this.preventAttachments()
     this.preventLinks()
 
-    if (this.form) {
-      this.form.guard = this
-      protectForm(this.form)
-    }
+    if (this.form) protectForm(this.form, this.input)
   }
 
   get editor() {

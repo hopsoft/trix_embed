@@ -4,7 +4,7 @@ import { createURLObject } from './urls'
 let patched
 let observer
 const protectedForms = new Set()
-const trixEmbedSelector = `${trixEditorTagName}[data-controller="trix-embed"]`
+const trixEmbedSelector = `${trixEditorTagName}[data-controller~="trix-embed"]`
 
 const events = {
   add: 'trix-embed:form:add',
@@ -17,10 +17,9 @@ function makeKey(form) {
   return `${method}:${action}`.trim().toLowerCase()
 }
 
-function protect(form) {
+function protect(form, input) {
   if (!form) return
   const key = makeKey(form)
-  const { input } = form.guard || {}
   protectedForms.add({ key, form, input })
 }
 

@@ -47,7 +47,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       const value = this.element.getAttribute('data-controller') || ''
       const values = new Set(value.split(' '))
       values.add('trix-embed')
-      this.element.setAttribute('data-controller', [...values].join(' '))
+      this.element.setAttribute('data-controller', [...values].join(' ').trim())
     }
 
     disconnect() {
