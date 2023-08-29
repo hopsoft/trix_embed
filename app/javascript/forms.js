@@ -26,7 +26,7 @@ function protect(form) {
 
 function shouldSubmit(form) {
   const key = makeKey(form)
-  const list = [...protetedForms].filter(f => f.key === key)
+  const list = [...protectedForms].filter(f => f.key === key)
 
   // form is not protected
   if (!list.length) return true
@@ -41,8 +41,8 @@ function shouldSubmit(form) {
   // prevent submit if it contains a protected input
   const inputs = list.map(item => item.input)
   inputs.forEach(input => {
-    if (input.name && form.querySlector(`[name="${input.name}"]`)) return false
-    if (input.id && form.querySlector(`#${input.id}`)) return false
+    if (input.name && form.querySelector(`[name="${input.name}"]`)) return false
+    if (input.id && form.querySelector(`#${input.id}`)) return false
     return true
   })
 }
