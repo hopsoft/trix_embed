@@ -121,6 +121,8 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
             const blockedHosts = [...new Set([...blockedMediaHosts, ...blockedLinkHosts])].filter(
               host => !this.reservedDomains.includes(host)
             )
+            console.log('allowedHosts', allowedHosts)
+            console.log('blockedHosts', blockedHosts)
             await this.insert(renderer.renderWarnings(invalidURLs, allowedHosts, blockedHosts))
           }
 

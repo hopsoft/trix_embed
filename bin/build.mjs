@@ -3,6 +3,7 @@ import { promises as fs } from 'fs'
 import chalk from 'chalk'
 import obfuscator from 'javascript-obfuscator'
 
+const debug = process.argv.includes('--debug')
 const outfile = 'app/assets/builds/trix-embed.js'
 const metafile = 'app/assets/builds/trix-embed.metafile.json'
 
@@ -46,7 +47,7 @@ try {
     format: 'esm',
     logLevel: 'debug',
     metafile: true,
-    minify: true,
+    minify: !debug,
     outfile,
     sourcemap: false,
     target: ['chrome79', 'edge44', 'es2020', 'firefox71', 'opera65', 'safari13'],
@@ -61,11 +62,14 @@ try {
   await writeMetadataFile()
   const result = await context.rebuild()
   let error
-  //result.outputFiles.forEach(out => fs.writeFile(outfile, `${prefix}\n${out.text}`, e => (error = e)))
-  result.outputFiles.forEach(out => {
-    const obfuscated = obfuscator.obfuscate(out.text).getObfuscatedCode()
-    fs.writeFile(outfile, `${prefix}\n${obfuscated}`, e => (error = e))
-  })
+  if (debug) {
+    result.outputFiles.forEach(out => fs.writeFile(outfile, `${prefix}\n${out.text}`, e => (error = e)))
+  } else {
+    result.outputFiles.forEach(out => {
+      const obfuscated = obfuscator.obfuscate(out.text).getObfuscatedCode()
+      fs.writeFile(outfile, `${prefix}\n${obfuscated}`, e => (error = e))
+    })
+  }
   fs.writeFile(metafile, JSON.stringify(result.metafile), e => (error = e))
   error ? logError(error) : console.log(successMessage)
 } catch (error) {

@@ -167,27 +167,25 @@ export default class Renderer {
     if (!urls?.length) return
 
     allowedHosts = [...allowedHosts].sort()
-    if (allowedHosts.includes('*')) allowedHosts.splice(allowedHosts.indexOf('*'), 1)
+    if (allowedHosts.includes('*')) allowedHosts = ['All']
 
-    blockedHosts = [...blockedHosts]
-    if (blockedHosts.includes('*')) blockedHosts.splice(blockedHosts.indexOf('*'), 1)
-
-    const hosts = [...new Set([...blockedHosts, ...extractURLHosts(urls)])].sort()
+    blockedHosts = [...new Set([...blockedHosts, ...extractURLHosts(urls)])].sort()
+    if (blockedHosts.includes('*')) blockedHosts = ['All']
 
     return this.render('warning', {
       header: 'Copy/Paste Warning',
-      subheader: 'Content includes URLs or media from prohibited hosts or restricted protocols.',
+      subheader: 'Content includes links or media from restricted protocols or prohibited hosts.',
       prohibited: {
         header: 'Prohibited Hosts',
-        hosts: hosts.length
-          ? hosts.map(host => `<li>${host}</li>`).join('')
-          : '<li>URLs and media are restricted to allowed hosts and standard protocols.</li>'
+        hosts: blockedHosts.length
+          ? blockedHosts.map(host => `<li>${host}</li>`).join('')
+          : '<li>Not configured</li>'
       },
       allowed: {
         header: 'Allowed Hosts',
         hosts: allowedHosts.length
           ? allowedHosts.map(host => `<li>${host}</li>`).join('')
-          : '<li>Allowed hosts not configured.</li>'
+          : '<li>Not configured</li>'
       }
     })
   }
