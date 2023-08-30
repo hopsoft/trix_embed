@@ -90,10 +90,9 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
 
         event.preventDefault()
         this.editor.setSelectedRange(range)
+        const renderer = new Renderer(this)
 
         try {
-          const renderer = new Renderer(this)
-
           // Media URLs (images, videos, audio etc.)
           const allowedMediaHosts = await this.allowedMediaHosts
           const blockedMediaHosts = await this.blockedMediaHosts

@@ -1,6 +1,7 @@
 import * as esbuild from 'esbuild'
-import fs from 'fs'
+import { promises as fs } from 'fs'
 import chalk from 'chalk'
+import obfuscator from 'javascript-obfuscator'
 
 const outfile = 'app/assets/builds/trix-embed.js'
 const metafile = 'app/assets/builds/trix-embed.metafile.json'
@@ -11,7 +12,7 @@ ${chalk.bold.green('ESM build succeeded')}
 └── ${chalk.greenBright(metafile)} analyze at ${chalk.underline('https://esbuild.github.io/analyze/')}
 `
 
-const metadata = JSON.parse(await fs.promises.readFile('package.json', 'utf8'))
+const metadata = JSON.parse(await fs.readFile('package.json', 'utf8'))
 const { author, description, name, license, repository, version } = metadata
 const copyright = `Copyright © ${new Date().getFullYear()} ${author}`
 const prefix = `/*
@@ -60,7 +61,11 @@ try {
   await writeMetadataFile()
   const result = await context.rebuild()
   let error
-  result.outputFiles.forEach(out => fs.writeFile(outfile, `${prefix}\n${out.text}`, e => (error = e)))
+  //result.outputFiles.forEach(out => fs.writeFile(outfile, `${prefix}\n${out.text}`, e => (error = e)))
+  result.outputFiles.forEach(out => {
+    const obfuscated = obfuscator.obfuscate(out.text).getObfuscatedCode()
+    fs.writeFile(outfile, `${prefix}\n${obfuscated}`, e => (error = e))
+  })
   fs.writeFile(metafile, JSON.stringify(result.metafile), e => (error = e))
   error ? logError(error) : console.log(successMessage)
 } catch (error) {
