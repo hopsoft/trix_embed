@@ -20,7 +20,7 @@ export default class Guard {
   }
 
   protect(attempt = 0) {
-    if (!this.toolbar && attempt < 10) return setTimeout(() => this.protect(attempt + 1), 25)
+    if (!this.toolbar && attempt < 100) return setTimeout(() => this.protect(attempt + 1), 25)
 
     this.preventAttachments()
     this.preventLinks()

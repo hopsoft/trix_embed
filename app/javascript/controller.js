@@ -48,11 +48,8 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       this.store = new Store(this)
       this.guard = new Guard(this)
 
-      if (this.configured) return
-
-      this.rememberConfig().then(() => {
-        if (this.paranoid) this.guard.protect()
-      })
+      if (this.configured) return this.protect()
+      this.rememberConfig().then(() => this.protect(this))
     }
 
     reconnect() {
@@ -76,8 +73,12 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       } catch {}
     }
 
-    async paste(event) {
-      if (!this.configured) return setTimeout(() => this.paste(event), 250)
+    protect() {
+      if (this.paranoid) this.guard.protect()
+    }
+
+    async paste(event, attempt = 0) {
+      if (!this.configured && attempt < 100) return setTimeout(() => this.paste(event, attempt + 1), 25)
       if (this.formElement) this.formElement.trixEmbedPasting = true
 
       try {
@@ -334,7 +335,11 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
     }
 
     get configured() {
-      return !!this.key
+      try {
+        return this.store.read('configured') === 'true'
+      } catch {
+        return false
+      }
     }
 
     get hostsValueDescriptors() {
@@ -434,6 +439,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
         fakes = await encryptValues(key, sample(this.reservedDomains, 4))
         this.store.write('obscurityHosts', fakes)
 
+        this.store.write('configured', true)
         resolve()
       })
     }
@@ -451,6 +457,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
 
         this.store?.remove('securityHosts')
         this.store?.remove('obscurityHosts')
+        this.store?.remove('configured')
       } catch {}
     }
   }

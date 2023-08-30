@@ -91,7 +91,7 @@ function patch() {
 }
 
 function observe(attempt = 0) {
-  if (!document.body && attempt < 10) return setTimeout(() => observe(attempt + 1), 50)
+  if (!document.body && attempt < 100) return setTimeout(() => observe(attempt + 1), 25)
 
   if (_observer) return
 
