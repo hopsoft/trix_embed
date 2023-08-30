@@ -1,7 +1,7 @@
 {
   "author": "Nate Hopkins (hopsoft) <natehop@gmail.com>",
   "name": "trix-embed",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "repository": "https://github.com/hopsoft/trix_embed",
   "description": "Take control over what external links and embedded media is permitted in the Trix editor via copy/paste",
   "keywords": [

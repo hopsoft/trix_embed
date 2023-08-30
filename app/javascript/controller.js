@@ -48,7 +48,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       this.store = new Store(this)
       this.guard = new Guard(this)
 
-      if (this.key) return // already configured
+      if (this.configured) return
 
       this.rememberConfig().then(() => {
         if (this.paranoid) this.guard.protect()
@@ -77,6 +77,7 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
     }
 
     async paste(event) {
+      if (!this.configured) return setTimeout(() => this.paste(event), 250)
       if (this.formElement) this.formElement.trixEmbedPasting = true
 
       try {
@@ -94,8 +95,8 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
 
         try {
           // Media URLs (images, videos, audio etc.)
-          const allowedMediaHosts = await this.allowedMediaHosts
-          const blockedMediaHosts = await this.blockedMediaHosts
+          const allowedMediaHosts = (await this.allowedMediaHosts) || this.allowedMediaHostsValue || []
+          const blockedMediaHosts = (await this.blockedMediaHosts) || this.blockedMediaHostsValue || []
           let mediaURLs = new Set(pastedURLs.filter(url => getMediaType(url)))
           const iframes = [...pastedElement.querySelectorAll('iframe')]
           iframes.forEach(frame => mediaURLs.add(frame.src))
@@ -106,8 +107,8 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
           const invalidMediaURLs = mediaURLs.filter(url => !validMediaURLs.includes(url))
 
           // Link URLs (non-media resources i.e. web pages etc.)
-          const allowedLinkHosts = await this.allowedLinkHosts
-          const blockedLinkHosts = await this.blockedLinkHosts
+          const allowedLinkHosts = (await this.allowedLinkHosts) || this.allowedLinkHostsValue || []
+          const blockedLinkHosts = (await this.blockedLinkHosts) || this.blockedLinkHostsValue || []
           const linkURLs = pastedURLs.filter(url => !mediaURLs.includes(url))
           const validLinkURLs = linkURLs.filter(url => validateURL(url, allowedLinkHosts, blockedLinkHosts))
           const invalidLinkURLs = linkURLs.filter(url => !validLinkURLs.includes(url))
@@ -330,6 +331,10 @@ export function getTrixEmbedControllerClass(options = { Controller: null, Trix: 
       } catch {
         return null
       }
+    }
+
+    get configured() {
+      return !!this.key
     }
 
     get hostsValueDescriptors() {
