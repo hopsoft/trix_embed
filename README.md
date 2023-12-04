@@ -135,7 +135,7 @@ TODO: document...
 
 ## Persistence
 
-You'll also need to ensure any embedded attachments are prepared for persistence.
+You'll need to ensure any embedded attachments are prepared for persistence.
 
 ```ruby
 class ContentController < ApplicationController
