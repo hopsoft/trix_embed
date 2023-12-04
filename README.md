@@ -140,7 +140,7 @@ You'll also need to ensure any embedded attachments are prepared for persistence
 ```ruby
 class ContentController < ApplicationController
   def create
-    Example.create content: TrixEmbed::Attachment.rewrite_for_storage(params[:body].to_s)
+    Example.create content: TrixEmbed::Attachment.rewrite_for_storage(params[:content].to_s)
   end
 end
 ```
