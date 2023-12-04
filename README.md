@@ -6,6 +6,7 @@
 
 ## Table of Contents
 
+  - [Dependencies](#dependencies)
   - [Setup](#setup)
   - [Features](#features)
     - [Allow / Block Lists](#allow--block-lists)
@@ -13,6 +14,7 @@
   - [Basic Usage](#basic-usage)
     - [Allow Lists](#allow-lists)
     - [Block Lists](#block-lists)
+  - [Persistence](#persistence)
   - [Sponsors](#sponsors)
   - [Developing](#developing)
   - [Releasing](#releasing)
@@ -130,6 +132,18 @@ TODO: document...
       </trix-editor>
     </form>
     ```
+
+## Persistence
+
+You'll also need to ensure any embedded attachments are prepared for persistence.
+
+```ruby
+class ContentController < ApplicationController
+  def create
+    Example.create content: TrixEmbed::Attachment.rewrite_for_storage(params[:body].to_s)
+  end
+end
+```
 
 ## Sponsors
 
